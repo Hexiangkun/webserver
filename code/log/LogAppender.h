@@ -5,6 +5,8 @@
 #include "LogFormatter.h"
 #include "LogBuffer.h"
 #include "lock.h"
+#include "util.h"
+#include "timeUtil.h"
 #include <fstream>
 #include <filesystem>
 #include <thread>
@@ -116,11 +118,20 @@ bool FileLogAppender::reopen()
     if(!m_file_stream) {
         m_file_stream.close();
     }
-    if(!std::filesystem::exists(m_filename)){
-        std::filesystem::create_directories(std::filesystem::path(m_filename).parent_path());   //创建对应的目录
+    // if(!std::filesystem::exists(m_filename)){
+    //     std::filesystem::create_directories(std::filesystem::path(m_filename).parent_path());   //创建对应的目录
+    // }
+    auto last_pos = m_filename.find_last_of("/");
+    if(last_pos == std::string::npos) {
+        throw std::logic_error("log file name is invalid!");
     }
+    std::string full_dic = m_filename.substr(0, last_pos+1);
+    MakeDir(full_dic);
+    std::string full_name = m_filename.substr(last_pos+1);
+    TimeUtil now;
+    full_name.insert(0,now.formatTime()+"@");
 
-    m_file_stream.open(m_filename, std::ios_base::out | std::ios_base::app);
+    m_file_stream.open(full_dic + full_name, std::ios_base::out | std::ios_base::app);
     return !!m_file_stream;
 }
 
@@ -187,11 +198,20 @@ bool AsyncFileLogAppender::reopen()
     if(!m_file_stream) {
         m_file_stream.close();
     }
-    if(!std::filesystem::exists(m_filename)){
-        std::filesystem::create_directories(std::filesystem::path(m_filename).parent_path());   //创建对应的目录
+    // if(!std::filesystem::exists(m_filename)){
+    //     std::filesystem::create_directories(std::filesystem::path(m_filename).parent_path());   //创建对应的目录
+    // }
+    auto last_pos = m_filename.find_last_of("/");
+    if(last_pos == std::string::npos) {
+        throw std::logic_error("log file name is invalid!");
     }
+    std::string full_dic = m_filename.substr(0, last_pos+1);
+    MakeDir(full_dic);
+    std::string full_name = m_filename.substr(last_pos+1);
+    TimeUtil now;
+    full_name.insert(0,now.formatTime()+"@");
 
-    m_file_stream.open(m_filename, std::ios_base::out | std::ios_base::app);
+    m_file_stream.open(full_dic + full_name, std::ios_base::out | std::ios_base::app);
     return !!m_file_stream;
 }
 

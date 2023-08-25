@@ -2,25 +2,51 @@
 #include <fstream>
 #include <filesystem>
 #include <vector>
+#include <sys/stat.h>
 #include <algorithm>
 
 namespace fs = std::filesystem;
 
-int test_creatDirectories() {
-    std::string filePath = "/home/hxk/C++Project/webserver/test/test/your/file.txt";
-
-    if(fs::exists(filePath)){
+bool MakeDir(const std::string& filepath)
+{
+    if(!std::filesystem::exists(filepath)){
+        auto res = std::filesystem::create_directories(std::filesystem::path(filepath).parent_path());   //创建对应的目录
+        if(!res) {
+            std::cout << "创建目录失败" << std::endl;
+        }
+    }
+    else {
         std::cout << "存在文件目录" << std::endl;
     }
-    else
-    {
-        std::cout << fs::create_directories(fs::path(filePath).parent_path()) << std::endl;
+}
+
+int test_creatDirectories() {
+    std::string filePath = "/home/hxk/C++Project/webserver/test/test/your/log.log";
+    auto last_pos = filePath.find_last_of("/");
+    if(last_pos == std::string::npos) {
+        throw std::logic_error("log file name is invalid!");
     }
+    std::string full_dic = filePath.substr(0, last_pos+1);
+    std::string full_name = filePath.substr(last_pos+1);
+    full_name.insert(0, "ni");
+    std::cout << full_dic << " " << full_name << std::endl;
+
+    MakeDir(full_dic);
+    // if(fs::exists(filePath)){
+    //     std::cout << "存在文件目录" << std::endl;
+    // }
+    // else
+    // {
+    //     auto res = fs::create_directories(fs::path(filePath).parent_path());
+    //     if(!res){
+    //         std::cout << "创建目录失败" << std::endl;
+    //     }
+
+    // }
     // 创建缺失的目录
     
-
-    // 创建文件并写入内容
-    std::ofstream file(filePath);
+    //创建文件并写入内容
+    std::ofstream file(full_dic+full_name);
     if (file.is_open()) {
         file << "Hello, World!";
         file.close();
@@ -45,8 +71,6 @@ void test_vec_reserve_resize()
 }
 
 
-
-
 int test_color() {
     std::ofstream file("output.txt");
     if (file.is_open()) {
@@ -59,12 +83,15 @@ int test_color() {
     return 0;
 }
 
-template <size_t... N> void print(std::index_sequence<N...>) {
-  std::vector<int> res;
-  (void)std::initializer_list<int>{
-      ((res.push_back(N), std::cout << N << " "), 0)...};
+template <size_t... N>
+void print(std::index_sequence<N...>) {
+    std::vector<int> res;
+    (void)std::initializer_list<int>{
+        ((res.push_back(N), std::cout << N << " "), 0)...};
   //std::for_each(res.begin(), res.end(), [](int x) {std::cout << x << " ";});
 }
+
+
 int test_index_seq() {
   auto t = std::make_index_sequence<10>();
   print(t);
@@ -83,10 +110,29 @@ void test_remove()
     std::cout << std::endl;
 }
 
+bool MakeDir(const char* dir) {
+    if (mkdir(dir, 0755) != 0) {
+        if (EEXIST != errno) {
+            perror("MakeDir failed:");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+void test_sperator()
+{
+    std::string filePath = "/home/hxk/C++Project/webserver/test/test/your/file.txt";
+}
+
 int main()
 {
     // test_vec_reserve_resize();
     // test_color();
     // test_index_seq();
-    test_remove();
+    // test_remove();
+    // MakeDir("/log/log");
+    test_creatDirectories();
 }

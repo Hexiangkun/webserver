@@ -85,6 +85,28 @@ uint64_t GetCurrentUS()
     return tv.tv_sec * 1000ul * 1000ul +tv.tv_usec;
 }
 
+bool MakeDir(const char* dir) {
+    if (mkdir(dir, 0755) != 0) {
+        if (EEXIST != errno) {
+            perror("MakeDir failed:");
+            return false;
+        }
+    }
 
+    return true;
+}
+
+bool MakeDir(const std::string& filepath)
+{
+    if(!std::filesystem::exists(filepath)){
+        auto res = std::filesystem::create_directories(std::filesystem::path(filepath).parent_path());   //创建对应的目录
+        if(!res) {
+            std::cout << "创建目录失败" << std::endl;
+        }
+    }
+    else {
+        std::cout << "存在文件目录" << std::endl;
+    }
+}
 
 }

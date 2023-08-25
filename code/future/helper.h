@@ -23,7 +23,7 @@ class TryWrapper;
 
 namespace internal
 {
-    //用于获取函数类型F在给定参数Args下返回值类型
+    //用于获取函数类型F在给定参数Args下返回值类型，即F(Args...)的返回值类型
     template<typename F, typename... Args>
     using ResultOf = decltype(std::declval<F>()(std::declval<Args>()...));
 
@@ -43,10 +43,10 @@ namespace internal
             return std::true_type{};
         }
 
-        template<typename T, typename Dummy = ResultOf<T, Args...>>
+        template<typename Dummy>
         static constexpr std::false_type Check(...)
         {
-            return std::false_type();
+            return std::false_type{};
         }
 
         typedef decltype(Check<F>(nullptr)) type;   //true如果F能够接受Args
@@ -73,11 +73,13 @@ namespace internal
     struct CallableResult
     {
         //Test F call with args type : void, T&& , T&
-        typedef std::conditional<CanCallWith<F>::value, //if true, F can call with void
-                                ResultOfWrapper<F>,
-                                typename std::conditional<CanCallWith<F, T&&>::value,
-                                                            ResultOfWrapper<F, T&&>,
-                                                            ResultOfWrapper<F, T&>>::type>::type Arg;
+        typedef typename std::conditional<CanCallWith<F>::value, //if true, F can call with void
+                                ResultOfWrapper<F>, 
+                                typename std::conditional<  //NO, F(void) is invalid
+                                    CanCallWith<F, T&&>::value,  //if true, F(T&&) is valid
+                                    ResultOfWrapper<F, T&&>, // F(T&&) is OK
+                                    ResultOfWrapper<F, T&>>::type>::type Arg;  //else F(T&) is valid
+        
         /*
             通过CanCallWith<F>判断F是否可以被调用，如果可以，使用ResultOfWrapper<F>作为Arg类型
             否则，通过CanCallWith<F, T&&>判断F是否可以被调用，如果可以，使用ResultOfWrapper<F, T&&>作为Arg类型
@@ -85,6 +87,21 @@ namespace internal
         */
 
         //用于判断Arg类型是否为一个Future类型的包装器
+        typedef IsFuture<typename Arg::Type> IsReturnsFuture;
+
+        typedef Future<typename IsReturnsFuture::Inner> ReturnFutureType;
+    };
+
+    template<typename F>
+    struct CallableResult<F, void>
+    {
+        typedef typename std::conditional<CanCallWith<F>::value, //if true, F can call with void
+                                ResultOfWrapper<F>, 
+                                typename std::conditional<  //NO, F(void) is invalid
+                                    CanCallWith<F, Try<void>&&>::value,  //if true, F(Try<void>&&) is valid
+                                    ResultOfWrapper<F, Try<void>&&>, // F(Try<void>&&) is OK
+                                    ResultOfWrapper<F, const Try<void>&>>::type>::type Arg;  //else F(const Try<void>&) is valid
+        
         typedef IsFuture<typename Arg::Type> IsReturnsFuture;
 
         typedef Future<typename IsReturnsFuture::Inner> ReturnFutureType;
@@ -106,7 +123,7 @@ namespace internal
 
             std::get<I>(results) = std::move(t);
             collects.push_back(I);
-            if(collects.size() == std::tuple_size<decltype<results>::value) {
+            if(collects.size() == std::tuple_size<decltype(results)>::value) {
                 lock.unlock();
                 pm.SetValue(std::move(results));
             }
@@ -130,8 +147,8 @@ namespace internal
     template<template<typename...> class CTX, typename... Ts, typename THead, typename... TTail>
     void CollectVariadicHelper(const std::shared_ptr<CTX<Ts...>>& ctx, THead&& head, TTail&&... tail) 
     {
-        using InnerTry = typename TryWrapper<typename Thead::InnerType>::Type;
-        head.then([ctx](InnerTry&& t){
+        using InnerTry = typename TryWrapper<typename THead::InnerType>::Type;
+        head.Then([ctx](InnerTry&& t){
             ctx->template SetPartialResult<InnerTry, sizeof...(Ts) - sizeof...(TTail) - 1>(std::move(t));
         });
 
@@ -141,6 +158,6 @@ namespace internal
 
 }
 
-};
+}
 
 #endif

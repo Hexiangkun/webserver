@@ -115,8 +115,8 @@ void Buffer::assureSpace(std::size_t needSize)
     const size_t dataSize = readableSize();
     const size_t old_capacity = m_capacity;
 
-    while(writableSize() + m_readPos < needSize) {
-        if(m_capacity < kDefaultSize) {
+    while(writableSize() + m_readPos < needSize) {//未使用的空间小于即将要使用的空间
+        if(m_capacity < kDefaultSize) { 
             m_capacity = kDefaultSize;
         }
         else if(m_capacity <= kMaxBufferSize) {
@@ -132,7 +132,7 @@ void Buffer::assureSpace(std::size_t needSize)
             assert(false);
         }
     }
-    if(old_capacity < m_capacity) {
+    if(old_capacity < m_capacity) { //扩容
         std::unique_ptr<char[]> tmp(new char[m_capacity]);
 
         if(dataSize != 0){
@@ -140,7 +140,7 @@ void Buffer::assureSpace(std::size_t needSize)
         }
         m_buffer.swap(tmp);
     }
-    else {
+    else {  //未扩容
         assert(m_readPos > 0);
         ::memmove(&m_buffer[0], &m_buffer[m_readPos], dataSize);
     }

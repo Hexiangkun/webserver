@@ -479,8 +479,11 @@ private:
     }
 };
 
+template<typename T, typename F>
+class MemberDelegate;
+
 template<typename ObjType, typename... Params>
-class MemberDelegate : public MemberDelegateBase<void, ObjType, Params...>
+class MemberDelegate<ObjType, void(Params...)> : public MemberDelegateBase<void, ObjType, Params...>
 {
 public:
     using Parent = MemberDelegateBase<void, ObjType, Params...>;
@@ -509,6 +512,48 @@ private:
     void helperMemberInvoke(ObjType* obj, const std::tuple<Params...>& tuple, int index, std::index_sequence<Indices...>)
     {
         (obj->*subscribers[index])(std::get<Indices>(tuple)...);
+    }
+};
+
+template<typename P, typename T, typename F>
+class ReturnMemberDelegate;
+
+
+template<typename ReturnType, class ObjType, typename... Params>
+class ReturnMemberDelegate<ReturnType, ObjType, ReturnType(Params...)> : public MemberDelegateBase<ReturnType, ObjType, Params...>
+{
+    static_assert(!std::is_void<ReturnType>::value, "ReturnMemberDelegate can't have void return type");
+
+public:
+    using Parent = MemberDelegateBase<ReturnType, ObjType, Params...>;
+    using Parent::parameters;
+    using Parent::subscribers;
+    using typename Parent::MemberFunctionType;
+
+    ReturnType invoke()
+    {
+        ReturnType result = ReturnType();
+        for(size_t i = 0; i <parameters.size(); i++)
+        {
+            result += helperMemberInvoke(parameters[i].object, parameters[i].parameters, i, std::index_sequence_for<Params...>());
+        }
+        return result;
+    }
+
+    ReturnType operator()(ObjType* obj, Params... params)
+    {
+        ReturnType result = ReturnType();
+        for(auto&& f : subscribers) {
+            result += (obj->*f)(params...);
+        }
+        return result;
+    }
+
+private:
+    template<size_t... Indices>
+    ReturnType helperMemberInvoke(ObjType* obj, const std::tuple<Params...>& tuple, int index, std::index_sequence<Indices...>)
+    {
+        return (obj->*subscribers[index])(std::get<Indices>(tuple)...);
     }
 };
 

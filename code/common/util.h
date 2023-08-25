@@ -2,7 +2,7 @@
  * @Author: Helens-dot 374961015@qq.com
  * @Date: 2023-06-04 22:50:02
  * @LastEditors: Helens-dot 374961015@qq.com
- * @LastEditTime: 2023-08-01 22:23:16
+ * @LastEditTime: 2023-08-25 20:07:32
  * @FilePath: /C++Project/framework/code/util/util.h
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -20,7 +20,8 @@
 #include <assert.h>         //assert
 #include <cxxabi.h>         //abi::__cxa_demangle
 #include <sys/time.h>       //gettimeofday
-
+#include <sys/stat.h>
+#include <filesystem>
 
 namespace hxk
 {
@@ -65,4 +66,8 @@ uint64_t GetCurrentMS();
  * @return {*}
  */
 uint64_t GetCurrentUS();
+
+bool MakeDir(const char* dir);
+
+bool MakeDir(const std::string& filepath);
 }

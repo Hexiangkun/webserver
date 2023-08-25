@@ -64,7 +64,7 @@ std::size_t TimeUtil::formatTime(char* buf) const
     std::call_once(m_init, &TimeUtil::Init);
     updateTime();
 
-    memcpy(buf, m_year[m_tm.tm_year + 1990 - 2015], 4);
+    memcpy(buf, m_year[m_tm.tm_year + 1900 - 2015], 4);
     buf[4] = '-';
     memcpy(buf + 5, m_number[m_tm.tm_mon + 1], 2);
     buf[7] = '-';
@@ -79,5 +79,13 @@ std::size_t TimeUtil::formatTime(char* buf) const
     auto msec = microSeconds();
     snprintf(buf+20, 8, "%06d]", static_cast<int>(msec % 1000000));
     return 27;
+}
+
+std::string TimeUtil::formatTime() const
+{
+    char buf[32];
+    size_t len = formatTime(buf);
+    buf[len] = '\0';
+    return std::string(buf);
 }
 }

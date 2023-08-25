@@ -64,6 +64,11 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "codecvt": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "any": "cpp",
+        "buffer": "cpp",
+        "netfwd": "cpp",
+        "optional": "cpp",
+        "variant": "cpp"
     }
 }

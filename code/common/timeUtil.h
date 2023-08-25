@@ -4,7 +4,9 @@
 #include <cstdint>
 #include <chrono>
 #include <mutex>
+#include <string>
 #include <cstring>
+#include <ctime>
 namespace hxk
 {
 
@@ -19,7 +21,7 @@ public:
     int64_t microSeconds() const;
 
     std::size_t formatTime(char* buf) const;
-    
+    std::string formatTime() const;
     int getYear() const
     {
         updateTime();

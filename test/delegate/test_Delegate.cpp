@@ -225,16 +225,37 @@ public:
     {
         ++b;
     }
+
+    int add(int& c)
+    {
+        c += 1;
+        return c;
+    }
 };
 
 TEST(delegate, mem_func)
 {
     Context c;
     int n = 0;
-    hxk::Delegate<void(int&)> cb;
-    auto f = std::bind(&Context::increase, &c, std::placeholders::_1);
+    hxk::MemberDelegate<Context, void(int&)> del;
+
+    del += &Context::increase;
     // cb.subscribe(f, n);
-    cb(n);
+    del(&c,n);
+    EXPECT_TRUE(n == 1);
+}
+
+TEST(delegate, mem_func_ret)
+{
+    Context c;
+    int n = 0;
+    hxk::ReturnMemberDelegate<int, Context, int(int&)> del;
+
+    del += &Context::add;
+    // cb.subscribe(f, n);
+    int x = del(&c,n);
+
+    std::cout << x << std::endl;
     EXPECT_TRUE(n == 1);
 }
 
