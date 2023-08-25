@@ -1,0 +1,1 @@
+[1;31;40mThis is some red text.[1;34;40m

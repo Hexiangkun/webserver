@@ -1,0 +1,9 @@
+logs:
+  - name: global
+    level: 1
+    formatter: "[%d] [%p] [%f:%l]%T%m%n"
+    appender:
+      - type: 2
+        level: 1
+        file: /home/hxk/C++Project/webserver/log/sftest_root_log_asycfile.txt
+
