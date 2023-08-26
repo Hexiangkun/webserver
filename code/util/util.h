@@ -2,7 +2,7 @@
  * @Author: Helens-dot 374961015@qq.com
  * @Date: 2023-06-04 22:50:02
  * @LastEditors: Helens-dot 374961015@qq.com
- * @LastEditTime: 2023-08-25 20:07:32
+ * @LastEditTime: 2023-08-25 21:47:08
  * @FilePath: /C++Project/framework/code/util/util.h
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -70,4 +70,27 @@ uint64_t GetCurrentUS();
 bool MakeDir(const char* dir);
 
 bool MakeDir(const std::string& filepath);
+
+std::vector<std::string> SplitString(const std::string& str, char seperator)
+{
+    std::vector<std::string> result;
+
+    std::string::size_type start = 0;
+    std::string::size_type sep = str.find(seperator);
+
+    while(sep != std::string::npos)
+    {
+        if(start < sep) {
+            result.emplace_back(str.substr(start, sep-start));
+        }
+        start = sep + 1;
+        sep = str.find(seperator);
+    }
+
+    if(start != str.size())
+    {
+        result.emplace_back(str.substr(start));
+    }
+    return result;
+}
 }
