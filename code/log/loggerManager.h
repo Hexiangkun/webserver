@@ -1,11 +1,11 @@
 #ifndef LOG_MANAGER_H
 #define LOG_MANAGER_H
 
-#include "Logger.h"
-#include "LogAppender.h"
-#include "LogConfig.h"
-#include "config.h"
-#include "singleInstance.h"
+#include "logger.h"
+#include "logAppender.h"
+#include "logConfig.h"
+#include "code/config/config.h"
+#include "code/util/singleInstance.h"
 #include <map>
 
 namespace hxk

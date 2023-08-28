@@ -4,10 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/hxk/C++Project/webserver/code/common/",
-                "/home/hxk/C++Project/webserver/code/config/",
-                "/home/hxk/C++Project/webserver/code/log/",
-                "/home/hxk/C++Project/webserver/code/future/"
+                // "/home/hxk/C++Project/webserver/code/common/",
+                // "/home/hxk/C++Project/webserver/code/config/",
+                // "/home/hxk/C++Project/webserver/code/log/",
+                // "/home/hxk/C++Project/webserver/code/future/",
             ],
             "defines": [],
             "compilerPath": "/usr/bin/g++",

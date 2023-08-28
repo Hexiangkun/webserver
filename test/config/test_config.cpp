@@ -1,4 +1,4 @@
-#include "config.h"
+#include "code/config/config.h"
 
 
 auto config_system_port = hxk::Config::lookUp<int>("system.port", 6666);
@@ -15,6 +15,7 @@ auto config_test_map = hxk::Config::lookUp<std::map<std::string, std::string>>(
                     std::make_pair("map3", "srting")});
 auto config_test_set = hxk::Config::lookUp<std::set<int>>(
     "test_set", std::set<int>{10, 20, 30});
+
 
 void test_ConfigVarToString()
 {

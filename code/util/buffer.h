@@ -4,7 +4,6 @@
 #include <cstring>
 #include <memory>
 #include <list>
-#include "noncopyable.h"
 
 namespace hxk
 {

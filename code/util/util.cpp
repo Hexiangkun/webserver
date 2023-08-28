@@ -109,4 +109,27 @@ bool MakeDir(const std::string& filepath)
     }
 }
 
+std::vector<std::string> SplitString(const std::string& str, char seperator)
+{
+    std::vector<std::string> result;
+
+    std::string::size_type start = 0;
+    std::string::size_type sep = str.find(seperator);
+
+    while(sep != std::string::npos)
+    {
+        if(start < sep) {
+            result.emplace_back(str.substr(start, sep-start));
+        }
+        start = sep + 1;
+        sep = str.find(seperator);
+    }
+
+    if(start != str.size())
+    {
+        result.emplace_back(str.substr(start));
+    }
+    return result;
+}
+
 }

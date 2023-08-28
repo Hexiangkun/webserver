@@ -5,5 +5,5 @@ logs:
     appender:
       - type: 2
         level: 1
-        file: /home/hxk/C++Project/webserver/log/sftest_root_log_asycfile.log
+        file: /home/hxk/project/webserver/log/sftest_root_log_asycfile.log
 

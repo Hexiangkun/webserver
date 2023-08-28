@@ -9,7 +9,7 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include "noncopyable.h"
+#include "code/util/noncopyable.h"
 
 namespace hxk
 {

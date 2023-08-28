@@ -1,8 +1,8 @@
 TARGET = test_log
 
-SOURCE = /home/hxk/C++Project/webserver/test/log/test_log.cpp /home/hxk/C++Project/webserver/code/config/config.cpp /home/hxk/C++Project/webserver/code/common/util.cpp /home/hxk/C++Project/webserver/code/common/timeUtil.cpp
+SOURCE = /home/hxk/project/webserver/test/log/test_log.cpp /home/hxk/project/webserver/code/util/util.cpp /home/hxk/project/webserver/code/util/timeUtil.cpp
 
-INCL = -I/home/hxk/C++Project/webserver/code/log/ -I/home/hxk/C++Project/webserver/code/config -I/home/hxk/C++Project/webserver/code/common
+INCL = -I/home/hxk/project/webserver/code/log/ -I/home/hxk/project/webserver/
 
 $(TARGET) : $(SOURCE)
 	$(CXX) $^ -o $@ $(INCL) -lyaml-cpp

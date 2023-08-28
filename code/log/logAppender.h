@@ -1,12 +1,12 @@
 #ifndef LOG_APPENDER_H
 #define LOG_APPENDER_H
 
-#include "LogLevel.h"
-#include "LogFormatter.h"
-#include "LogBuffer.h"
-#include "lock.h"
-#include "util.h"
-#include "timeUtil.h"
+#include "code/util/lock.h"
+#include "code/util/util.h"
+#include "code/util/timeUtil.h"
+#include "logLevel.h"
+#include "logFormatter.h"
+#include "logBuffer.h"
 #include <fstream>
 #include <filesystem>
 #include <thread>

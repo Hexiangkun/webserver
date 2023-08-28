@@ -1,4 +1,4 @@
-#include "Log.h"
+#include "code/log/log.h"
 #include <iostream>
 #include <memory>
 
@@ -24,6 +24,7 @@ void TEST_macroDefaultLogger()
     LOG_FORMAT_ERROR(logger, "消息消息 %s", "error");
     LOG_FORMAT_FATAL(logger, "消息消息 %s", "fatal");
 }
+
 
 void TEST_getNonexistentLogger()
 {

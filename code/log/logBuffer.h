@@ -1,7 +1,7 @@
 #ifndef LOG_BUFFER_H
 #define LOG_BUFFER_H
 
-#include "noncopyable.h"
+#include "code/util/noncopyable.h"
 #include <new>
 #include <iostream>
 #include <vector>

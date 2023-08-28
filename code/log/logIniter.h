@@ -1,9 +1,9 @@
 #ifndef LOG_INITER_H
 #define LOG_INITER_H
 
-#include "config.h"
-#include "LogConfig.h"
-#include "LoggerManager.h"
+#include "code/config/config.h"
+#include "logConfig.h"
+#include "loggerManager.h"
 
 namespace hxk
 {

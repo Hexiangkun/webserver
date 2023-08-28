@@ -120,11 +120,71 @@ bool MakeDir(const char* dir) {
 
     return true;
 }
-
-
-void test_sperator()
+template<class T>
+struct Try
 {
+    Try(const T& t){
+        value = t;
+        std::cout << value << std::endl;
+    }
+
+
+    operator T& () & 
+    {
+        return value;
+    }
+
+    operator T&& () && 
+    {
+        return value;
+    }
+
+    T value;
+};
+
+template<typename T>
+struct TryWrapper
+{
+    using Type = Try<T>;
+};
+
+template<typename F, typename... Args>
+void test_sperator(F&& f, Args&&... args)
+{
+    using Type = typename std::result_of<F(Args)...>::type;
+    typename TryWrapper<Type>::Type((std::forward<F>(f)(std::forward<Args>(args)...)));
     std::string filePath = "/home/hxk/C++Project/webserver/test/test/your/file.txt";
+    std::cout << filePath << std::endl;
+}
+
+void test_F_A()
+{   
+    int a = 10;
+    auto lambda = [](int a)->int {
+        std::cout << a << std::endl;
+        return a;
+    };
+    test_sperator(lambda, 10);
+}
+class MyClass {
+public:
+    template <typename T>
+    void Get() {
+        std::cout << "MyClass" << std::endl;
+    }
+
+    template <typename... Args>
+    void Process() 
+    {
+        (Get<Args...>());
+    }
+};
+
+
+void test_Args()
+{
+    MyClass obj;
+    obj.Process<int, float>();
 }
 
 int main()
@@ -134,5 +194,7 @@ int main()
     // test_index_seq();
     // test_remove();
     // MakeDir("/log/log");
-    test_creatDirectories();
+    // test_creatDirectories();
+    // test_F_A();
+    test_Args();
 }

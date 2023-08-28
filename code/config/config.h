@@ -1,8 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "lexical_cast.h"
-#include "lock.h"
+#include "code/util/lexical_cast.h"
+#include "code/util/lock.h"
 #include <string>
 #include <memory>
 #include <algorithm>
@@ -260,7 +260,13 @@ private:
 };
 
 
-extern std::ostream& operator<<(std::ostream& out, const ConfigVarBase& cvb);
+inline extern std::ostream& operator<<(std::ostream& out, const ConfigVarBase& cvb)
+{
+    {
+    out << cvb.getName() << ": " << cvb.toString();
+    return out;
+}
+}
 }
 
 #endif
