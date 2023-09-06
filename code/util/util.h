@@ -12,6 +12,7 @@
 #include <stdint.h> //uint64_t
 #include <vector>
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
@@ -22,6 +23,8 @@
 #include <sys/time.h>       //gettimeofday
 #include <sys/stat.h>
 #include <filesystem>
+#include <arpa/inet.h>
+#include <net/if.h>
 
 namespace hxk
 {
@@ -31,6 +34,7 @@ long GetThreadID();
 
 //获取协程id
 uint64_t GetFiberID();
+
 
 
 
@@ -72,4 +76,7 @@ bool MakeDir(const char* dir);
 bool MakeDir(const std::string& filepath);
 
 std::vector<std::string> SplitString(const std::string& str, char seperator);
+
+
+
 }

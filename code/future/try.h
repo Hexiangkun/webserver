@@ -11,9 +11,9 @@ class Try
 {
     enum class State
     {
-        None,
-        Exception,
-        Value,
+        None,       //未初始化
+        Exception,  //异常
+        Value,      //有返回值
     };
 private:
     State m_state;
@@ -96,20 +96,20 @@ public:
         return *this;
     }
 
-    //隐式转换
-    operator const T& () const &    //隐式类型转换符
+    //隐式转换，隐式类型转换符
+    operator const T& () const &    //将Try<T>对象转换成const T&    常量引用
     {
         return Value();
     }
 
-    operator T& () & 
+    operator T& () &                //将Try<T>对象转换成T&          左值引用
     {
         return Value();
     }
 
-    operator T&& () && 
+    operator T&& () &&              //将Try<T>对象转换成T&&         右值引用
     {
-        return Value();
+        return std::move(Value());
     }
 
     //get value
@@ -189,7 +189,7 @@ public:
     }
 
     template<typename R>
-    R Get()
+    R Get() //将值转换为R类型
     {
         return std::forward<R>(Value());
     }
@@ -200,14 +200,14 @@ class Try<void>
 {
     enum class State
     {
-        Exception,
-        Value,
+        Exception,  //异常
+        Value,      //值状态
     };
 private:
     State m_state;
     std::exception_ptr m_exception;
 public:
-    Try() : m_state(State::Exception) {}
+    Try() : m_state(State::Value) {}
     explicit Try(std::exception_ptr e) :m_state(State::Exception), m_exception(std::move(e)) {}
     ~Try()
     {
@@ -216,6 +216,7 @@ public:
         }
     }
     //move
+    //移动构造函数
     Try(Try<void>&& t):m_state(t.m_state)
     {
         if(m_state == State::Exception) {
@@ -223,35 +224,40 @@ public:
         }
     }
 
+    //移动赋值运算符
     Try<void>& operator=(Try<void>&& t) 
     {
         if(this == &t) {
             return *this;
         }
+        this->~Try();
+
         this->m_state = t.m_state;
         if(m_state == State::Exception) {
             new (&m_exception)std::exception_ptr(std::move(t.m_exception));
         }
+        return *this;
     }
 
     //copy
+    //拷贝构造
     Try(const Try<void>& t):m_state(t.m_state)
     {
         if(m_state == State::Exception) {
             new (&m_exception)std::exception_ptr(t.m_exception);
         }
     }
-
+    //拷贝赋值运算符
     Try<void>& operator=(const Try<void>& t)
     {
         if(this == &t) {
             return *this;
         }
 
-        // this->~Try();
-        if(m_state == State::Exception) {
-            m_exception.~exception_ptr();
-        }
+        this->~Try();
+        // if(m_state == State::Exception) {
+        //     m_exception.~exception_ptr();
+        // }
         m_state = t.m_state;
         if(m_state == State::Exception) {
             new (&m_exception)std::exception_ptr(t.m_exception);
@@ -322,6 +328,12 @@ struct TryWrapper<Try<T>>
 };
 
 //if F(Args..) return value's type isn't void ,use TryWrapper to pack T
+//return type Try<F(Args..)>
+
+
+/// @brief std::enable_if模板用于编译时根据条件决定是否启用该模板的实例化
+/// @brief std::is_same模板用于检查F(Args...)的返回值是否为void   如果不是void，则启用该函数模板的实例化
+/// @return 函数模板返回值是一个嵌套类型，即Try<F(Args...)>
 template<typename F, typename... Args>
 typename std::enable_if<
         !std::is_same<typename std::result_of<F(Args...)>::type, void>::value,
@@ -329,12 +341,12 @@ typename std::enable_if<
     WrapWithTry(F&& f, Args&&... args)
 {
     using Type = typename std::result_of<F(Args...)>::type;
-
+    //调用f(args...)
     try
     {
         return typename TryWrapper<Type>::Type(std::forward<F>(f)(std::forward<Args>(args)...));
     }
-    catch(const std::exception& e)
+    catch(std::exception& e)
     {
         return typename TryWrapper<Type>::Type(std::current_exception());
     }
@@ -350,14 +362,14 @@ typename std::enable_if<std::is_same<typename std::result_of<F(Args...)>::type, 
         std::forward<F>(f)(std::forward<Args>(args)...);    //函数执行
         return Try<void>();
     }
-    catch(const std::exception& e)
+    catch(std::exception& e)
     {
         return Try<void>(std::current_exception());
     }
     
 }
 
-//F(void) ,return Type
+//F() ,return Type
 template<typename F>
 typename std::enable_if<
         !std::is_same<typename std::result_of<F()>::type, void>::value,
@@ -370,7 +382,7 @@ typename std::enable_if<
     {
         return typename TryWrapper<Type>::Type(std::forward<F>(f)());
     }
-    catch(const std::exception& e)
+    catch(std::exception& e)
     {
         return typename TryWrapper<Type>::Type(std::current_exception());
     }
@@ -386,7 +398,7 @@ typename std::enable_if<std::is_same<typename std::result_of<F()>::type, void>::
         std::forward<F>(f)();
         return Try<void>();
     }
-    catch(const std::exception& e)
+    catch(std::exception& e)
     {
         return Try<void>(std::current_exception());
     }

@@ -166,25 +166,17 @@ void test_F_A()
     };
     test_sperator(lambda, 10);
 }
-class MyClass {
-public:
-    template <typename T>
-    void Get() {
-        std::cout << "MyClass" << std::endl;
-    }
 
-    template <typename... Args>
-    void Process() 
-    {
-        (Get<Args...>());
-    }
-};
-
-
-void test_Args()
+void my_func(int a)
 {
-    MyClass obj;
-    obj.Process<int, float>();
+    std::cout << a << std::endl;
+}
+
+void test_func_()
+{
+    int a =10;
+    std::function<void(int)> m_then;
+    m_then(std::move(a));
 }
 
 int main()
@@ -196,5 +188,5 @@ int main()
     // MakeDir("/log/log");
     // test_creatDirectories();
     // test_F_A();
-    test_Args();
+    test_func_();
 }
