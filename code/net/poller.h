@@ -11,13 +11,7 @@ namespace hxk
 namespace internal
 {
 
-enum EventType
-{
-    eET_None = 0,           //0
-    eET_Read = 0x1 << 0,    //1
-    eET_Write = 0x1 << 1,   //2
-    eET_Error = 0x1 << 2    //4
-};
+
 
 class Channel : public std::enable_shared_from_this<Channel>
 {
@@ -55,36 +49,7 @@ public:
     virtual void HandleErrorEvent() = 0;
 };
 
-struct FiredEvent   //触发事件类
-{
-    int events;         //事件类型
-    void* userData;     //用户数据
 
-    FiredEvent():events(0), userData(nullptr) {}
-};
-
-class Poller
-{
-protected:
-    int m_epfd;
-    std::vector<FiredEvent> m_firedEvents;
-
-public:
-    Poller() : m_epfd(-1) {}
-
-    virtual ~Poller() {}
-
-    virtual bool Register(int fd, int events, void* userPtr) = 0;
-    virtual bool Modify(int fd, int events, void* userPtr) = 0;
-    virtual bool Cancel(int fd, int events) = 0;
-
-    virtual int Poll(std::size_t maxEvent, int timeoutMs) = 0;      //轮询事件
-
-    const std::vector<FiredEvent>& GetFiredEvents() const
-    {
-        return m_firedEvents;
-    }
-};
 
 }
 
