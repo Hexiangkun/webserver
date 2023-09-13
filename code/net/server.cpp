@@ -8,11 +8,10 @@
 #include "Epoller.h"
 #include "InetAddress.h"
 #include "Socket.h"
+#include "Channel.h"
 
 #define MAX_EVENTS 1024
 #define READ_BUFFER 1024
-
-
 using namespace hxk;
 
 void setnonblocking(int fd){
@@ -23,25 +22,27 @@ void handleReadEvent(int);
 int main() {
     Socket *serv_sock = new Socket();
     InetAddress *serv_addr = new InetAddress("127.0.0.1", 8888);
-    std::cout << serv_addr->ToString() << std::endl;
     serv_sock->Bind(serv_addr);
     serv_sock->Listen();    
-    Epoller *ep = new Epoller();
+    Epoller::_ptr ep = std::make_shared<Epoller>();
+    // Epoller *ep = new Epoller();
     serv_sock->SetNonBlocking();
-    ep->AddFd(serv_sock->GetFd(), EPOLLIN | EPOLLET);
+    Channel *servChannel = new Channel(ep, serv_sock->GetFd());
+    servChannel->SetEnableReading();
     while(true){
-        int nfds = ep->Poll(1024, -1);
-        std::vector<epoll_event> events = ep->GetActiveEvents();
-
+        std::vector<Channel*> activeChannels = ep->poll(1024);
+        int nfds = activeChannels.size();
         for(int i = 0; i < nfds; ++i){
-            if(events[i].data.fd == serv_sock->GetFd()){        //新客户端连接
+            int chfd = activeChannels[i]->GetFd();
+            if(chfd == serv_sock->GetFd()){        //新客户端连接
                 InetAddress *clnt_addr = new InetAddress();      //会发生内存泄露！没有delete
                 Socket *clnt_sock = new Socket(serv_sock->Accept(clnt_addr));       //会发生内存泄露！没有delete
                 printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->GetFd(), inet_ntoa(clnt_addr->GetAddr().sin_addr), ntohs(clnt_addr->GetAddr().sin_port));
                 clnt_sock->SetNonBlocking();
-                ep->AddFd(clnt_sock->GetFd(), EPOLLIN | EPOLLET);
-            } else if(events[i].events & EPOLLIN){      //可读事件
-                handleReadEvent(events[i].data.fd);
+                Channel *clntChannel = new Channel(ep, clnt_sock->GetFd());
+                clntChannel->SetEnableReading();
+            } else if(activeChannels[i]->GetREvents() & EPOLLIN){      //可读事件
+                handleReadEvent(activeChannels[i]->GetFd());
             } else{         //其他事件，之后的版本实现
                 printf("something else happened\n");
             }

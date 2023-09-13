@@ -1,11 +1,72 @@
 #include "Epoller.h"
 #include "code/util/util.h"
 
+#include "Channel.h"
 namespace hxk
 {
 
-using namespace internal;
 
+
+namespace internal
+{
+namespace EpollCtl
+{
+    bool ModSocket(int epfd, int sockfd, uint32_t events, void* ptr)
+    {
+        if(sockfd < 0) {
+            return false;
+        }
+
+        epoll_event ev;
+        bzero(&ev, sizeof(ev));
+        ev.data.fd = sockfd;
+        ev.data.ptr = ptr;
+        ev.events = 0;
+
+        if(events & eET_Read) {
+            ev.events |= EPOLLIN;
+        }
+        if(events & eET_Write) {
+            ev.events |= EPOLLOUT;
+        }
+
+        return 0 == epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
+    }
+
+    bool AddSocket(int epfd, int sockfd, uint32_t events, void* ptr)
+    {
+        if(sockfd < 0) {
+            return false;
+        }
+
+        epoll_event ev;
+        bzero(&ev, sizeof(ev));
+        ev.data.fd = sockfd;
+        ev.data.ptr = ptr;
+        ev.events = 0;
+
+        if(events & eET_Read) {
+            ev.events |= EPOLLIN;
+        }  
+        if(events & eET_Write) {
+            ev.events |= EPOLLOUT;
+        }
+
+        return 0 == epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd, &ev);
+    }
+
+    bool DelSocket(int epfd, int sockfd)
+    {
+        if(sockfd < 0) {
+            return false;
+        }
+
+        return 0 == epoll_ctl(epfd, EPOLL_CTL_DEL, sockfd, nullptr);
+    }
+}
+}
+
+using namespace internal;
 Epoller::Epoller()
 {
     m_epfd = ::epoll_create(512);
@@ -112,6 +173,44 @@ int Epoller::Poll(std::size_t maxEvents, int timeoutMs)
 std::vector<epoll_event> Epoller::GetActiveEvents()
 {
     return m_activeEvents;
+}
+
+void Epoller::UpdateChannel(Channel* ch)
+{
+    int fd = ch->GetFd();
+
+    struct epoll_event ev;
+    bzero(&ev, sizeof(ev));
+    ev.data.ptr = ch;
+    ev.events = ch->GetEvents();
+    
+    if(!ch->GetInEpoll()){  //不在m_epfd的红黑树中
+        errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "epoll add fd error!");
+        ch->SetInEpoll();
+    }
+    else {
+        errif(::epoll_ctl(m_epfd, EPOLL_CTL_MOD, fd, &ev) == -1, "epoll mode fd error!");
+    }
+}
+
+std::vector<Channel*> Epoller::poll(std::size_t maxEvents, int timeoutMs)
+{
+    if(maxEvents == 0) {
+        return {};
+    }
+    while(m_activeEvents.size() < maxEvents) {
+        m_activeEvents.resize(2 * m_activeEvents.size() + 1);
+    }
+    std::vector<Channel*> activeChannels;
+    int nfds = ::epoll_wait(m_epfd, &m_activeEvents[0], maxEvents, timeoutMs);
+    errif(nfds == -1, "epoll wait error");
+
+    for(int i = 0; i < nfds; i++) {
+        Channel* ch = (Channel*)m_activeEvents[i].data.ptr;
+        ch->SetREvent(m_activeEvents[i].events);
+        activeChannels.emplace_back(ch);
+    }
+    return activeChannels;
 }
 
 

@@ -1,12 +1,12 @@
 #ifndef EPOLLER_H
 #define EPOLLER_H
 
-#include "poller.h"
 #include <sys/epoll.h>
 #include <vector>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <memory>
 
 
 namespace hxk
@@ -38,6 +38,7 @@ protected:
     std::vector<FiredEvent> m_firedEvents;
 
 public:
+    using _ptr = std::shared_ptr<Poller>;
     Poller() : m_epfd(-1) {}
 
     virtual ~Poller() {}
@@ -54,69 +55,25 @@ public:
     }
 };
 
-}
 
 namespace EpollCtl
 {
-    using namespace internal;
-    bool ModSocket(int epfd, int sockfd, uint32_t events, void* ptr)
-    {
-        if(sockfd < 0) {
-            return false;
-        }
+    bool ModSocket(int epfd, int sockfd, uint32_t events, void* ptr);
 
-        epoll_event ev;
-        bzero(&ev, sizeof(ev));
-        ev.data.fd = sockfd;
-        ev.data.ptr = ptr;
-        ev.events = 0;
+    bool AddSocket(int epfd, int sockfd, uint32_t events, void* ptr);
 
-        if(events & eET_Read) {
-            ev.events |= EPOLLIN;
-        }
-        if(events & eET_Write) {
-            ev.events |= EPOLLOUT;
-        }
-
-        return 0 == epoll_ctl(epfd, EPOLL_CTL_MOD, sockfd, &ev);
-    }
-
-    bool AddSocket(int epfd, int sockfd, uint32_t events, void* ptr)
-    {
-        if(sockfd < 0) {
-            return false;
-        }
-
-        epoll_event ev;
-        bzero(&ev, sizeof(ev));
-        ev.data.fd = sockfd;
-        ev.data.ptr = ptr;
-        ev.events = 0;
-
-        if(events & eET_Read) {
-            ev.events |= EPOLLIN;
-        }  
-        if(events & eET_Write) {
-            ev.events |= EPOLLOUT;
-        }
-
-        return 0 == epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd, &ev);
-    }
-
-    bool DelSocket(int epfd, int sockfd)
-    {
-        if(sockfd < 0) {
-            return false;
-        }
-
-        return 0 == epoll_ctl(epfd, EPOLL_CTL_DEL, sockfd, nullptr);
-    }
+    bool DelSocket(int epfd, int sockfd);
 }
 
 
+}
+
+
+class Channel;
 class Epoller : public internal::Poller
 {
 public:
+    using _ptr = std::shared_ptr<Epoller>;
     Epoller();
     ~Epoller();
 
@@ -134,6 +91,10 @@ public:
     int Poll(std::size_t maxEvents, int timeoutMs) override;
 
     std::vector<epoll_event> GetActiveEvents();
+
+    void UpdateChannel(Channel* channel);
+
+    std::vector<Channel*> poll(std::size_t maxEvents, int timeoutMs = -1);
 
 private:
     std::vector<epoll_event> m_activeEvents;

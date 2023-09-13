@@ -1,10 +1,11 @@
 #ifndef PIPECHANNEL_H
 #define PIPECHANNEL_H
 
-#include "poller.h"
-#include "socket.h"
 #include <unistd.h>
 #include <assert.h>
+
+#include "poller.h"
+#include "SocketUtil.h"
 
 namespace hxk
 {
