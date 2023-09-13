@@ -55,7 +55,7 @@ public:
     virtual void HandleErrorEvent() = 0;
 };
 
-struct FiredEvent
+struct FiredEvent   //触发事件类
 {
     int events;         //事件类型
     void* userData;     //用户数据
@@ -66,11 +66,11 @@ struct FiredEvent
 class Poller
 {
 protected:
-    int m_mutiplexer;
+    int m_epfd;
     std::vector<FiredEvent> m_firedEvents;
 
 public:
-    Poller() : m_mutiplexer(-1) {}
+    Poller() : m_epfd(-1) {}
 
     virtual ~Poller() {}
 

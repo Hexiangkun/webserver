@@ -102,10 +102,13 @@ bool MakeDir(const std::string& filepath)
         auto res = std::filesystem::create_directories(std::filesystem::path(filepath).parent_path());   //创建对应的目录
         if(!res) {
             std::cout << "创建目录失败" << std::endl;
+            return false;
         }
+        return true;
     }
     else {
         std::cout << "存在文件目录" << std::endl;
+        return true;
     }
 }
 

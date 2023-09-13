@@ -12,7 +12,7 @@ namespace hxk
 
 std::string ConvertIp(const char* ip);
 
-struct InetAddress
+class InetAddress
 {
 private:
     sockaddr_in addr_;

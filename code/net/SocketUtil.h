@@ -19,6 +19,7 @@
 
 namespace hxk
 {
+class InetAddress;
 
 extern const int KInvalid;
 extern const int KTimeout;
