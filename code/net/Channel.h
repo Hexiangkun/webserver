@@ -7,6 +7,7 @@
 namespace hxk
 {
 class Epoller;
+//Channel必须说明它与哪个epoll和fd绑定
 class Channel
 {
 public:

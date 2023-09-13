@@ -3,7 +3,7 @@
 namespace hxk
 {
 
-Channel::Channel(Epoller::_ptr ep, int sockfd) :m_epPtr(ep), m_sockfd(sockfd),
+Channel::Channel(std::shared_ptr<Epoller> ep, int sockfd) :m_epPtr(ep), m_sockfd(sockfd),
             m_events(0), m_revents(0), m_inEpoll(false)
 {
 
