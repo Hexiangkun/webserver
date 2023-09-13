@@ -132,4 +132,13 @@ std::vector<std::string> SplitString(const std::string& str, char seperator)
     return result;
 }
 
+
+void errif(bool condition, const char* msg)
+{
+    if(condition) {
+        perror(msg);
+        exit(EXIT_FAILURE);
+    }
+}
+
 }
