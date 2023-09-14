@@ -19,7 +19,7 @@ Channel::~Channel()
 
 void Channel::SetEnableReading()
 {
-    m_events = EPOLLIN | EPOLLET;
+    m_events |= EPOLLIN | EPOLLET;
     m_eventLoop->UpdateChannel(this);
 }
 
@@ -60,7 +60,8 @@ void Channel::SetREvent(uint32_t _ev)
 
 void Channel::HandleEvent()
 {
-    m_callback();
+    // m_callback();
+    m_eventLoop->AddFuncToThread(m_callback);
 }
 
 void Channel::HandleConnectionEvent()

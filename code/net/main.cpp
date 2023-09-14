@@ -29,7 +29,7 @@ void test()
 
 
 
-int main() {
+void Ptr() {
     std::shared_ptr<int> sharedPtr = std::make_shared<int>(42);
 
     // 将 std::shared_ptr 的地址保存在 void* 变量中
@@ -41,6 +41,13 @@ int main() {
     // 使用转换后的 std::shared_ptr
     std::cout << (*convertedSharedPtr) << std::endl;  // 输出: 42
 
+}
+
+int main()
+{
+    const char* c = "nihao";
+    std::string s(c, 4);
+    std::cout  << s << std::endl;
     return 0;
 }
 

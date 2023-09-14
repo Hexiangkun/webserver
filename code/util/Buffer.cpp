@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "Buffer.h"
 #include <limits>
 #include <assert.h>
 
@@ -219,6 +219,11 @@ void Buffer::swap(Buffer& buf)
     std::swap(m_writePos , buf.m_writePos);
     std::swap(m_capacity, buf.m_capacity);
     m_buffer.swap(buf.m_buffer);
+}
+
+std::string Buffer::to_string()
+{
+    return std::string(readAddr(), readableSize());
 }
 
 } // namespace hxk

@@ -4,6 +4,7 @@
 #include <cstring>
 #include <memory>
 #include <list>
+#include <string>
 
 namespace hxk
 {
@@ -48,6 +49,8 @@ public:
     void swap(Buffer& buf);
 
     void assureSpace(std::size_t size);
+
+    std::string to_string();
 
 public:
     static const std::size_t kMaxBufferSize;

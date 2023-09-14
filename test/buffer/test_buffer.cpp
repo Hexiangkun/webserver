@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "code/util/Buffer.h"
 #include <gtest/gtest.h>
 
 
@@ -11,6 +11,8 @@ TEST(buffer, push) {
     EXPECT_EQ(ret, 5);
 
     ret = buf.pushData("world\n", 6);
+
+    std::cout << buf.to_string() << std::endl;
     EXPECT_EQ(ret, 6);
 }
 
@@ -113,6 +115,12 @@ TEST(buffer, push_pop) {
 
     buf.shrink();
     EXPECT_EQ(buf.capacity(), 1);
+}
+
+TEST(buffer, to_string)
+{
+    Buffer buf;
+    
 }
 
 
