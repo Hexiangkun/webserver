@@ -5,6 +5,7 @@
 #include "Channel.h"
 #include "Acceptor.h"
 #include "EventLoop.h"
+#include "Connection.h"
 
 #include <iostream>
 
@@ -23,47 +24,23 @@ Application::~Application()
 
 }
 
-void Application::HandleReadEvent(int sockfd)
-{
-    char buf[1024];
-    while(true) {
-        bzero(buf, sizeof(buf));
-        ssize_t bytes = read(sockfd, buf, sizeof(buf));
 
-        if(bytes > 0) {
-            printf("message from client fd %d: %s\n", sockfd, buf);
-            write(sockfd, buf, bytes);
-        }
-        else if(bytes == -1 && errno == EINTR) {    //客户端正常中断，继续读取
-            printf("continue reading");
-            continue;
-        }
-        else if(bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            printf("finish reading once, errno: %d\n", errno);
-            break;
-        }
-        else if(bytes == 0) {
-            printf("EOF, client fd %d disconnected\n", sockfd);
-            close(sockfd);   //关闭socket会自动将文件描述符从epoll树上移除
-            break;
-        }
-    }
+
+void Application::HandleNewConnection(std::shared_ptr<Socket>& clnt_sock)
+{
+    std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_eventLoop, clnt_sock);
+    std::function<void(std::shared_ptr<Socket>&)> cb = std::bind(&Application::DeleteConnection, this, std::placeholders::_1);
+    conn->SetDeleteConnCallback(cb);
+    m_connections[clnt_sock->GetFd()] = conn;
 }
 
-void Application::HandleNewConnection(std::shared_ptr<Socket>& serv_sock)
+void Application::DeleteConnection(std::shared_ptr<Socket>& clnt_sock)
 {
-    // InetAddress* clnt_addr = new InetAddress();
-    std::shared_ptr<InetAddress> clnt_addr = std::make_shared<InetAddress>();
-    Socket* clnt_sock = new Socket(serv_sock->Accept(clnt_addr));
-
-    printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->GetFd(), clnt_addr->GetIp().c_str(), clnt_addr->GetPort());
-    clnt_sock->SetNonBlocking();
-
-    Channel* clnt_channel = new Channel(m_eventLoop, clnt_sock->GetFd());
-    std::function<void()> cb = std::bind(&Application::HandleReadEvent,this, clnt_sock->GetFd());
-    clnt_channel->SetCallbck(cb);
-    clnt_channel->SetEnableReading();
+    std::shared_ptr<Connection> conn = m_connections[clnt_sock->GetFd()];
+    m_connections.erase(clnt_sock->GetFd());
+    conn.reset();
 }
+
 
 // void Application::HandleNewConnection(Socket* serv_addr)
 // {

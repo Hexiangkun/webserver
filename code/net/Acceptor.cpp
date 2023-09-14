@@ -32,7 +32,11 @@ void Acceptor::SetNewConnectionCallback(std::function<void(std::shared_ptr<Socke
 
 void Acceptor::AcceptConnection()
 {
-    m_newConnectionCallback(m_sock);
+    std::shared_ptr<InetAddress> clnt_addr = std::make_shared<InetAddress>();
+    std::shared_ptr<Socket> clnt_sock = std::make_shared<Socket>(m_sock->Accept(clnt_addr));
+    printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->GetFd(), clnt_addr->GetIp().c_str(), clnt_addr->GetPort());
+    clnt_sock->SetNonBlocking();
+    m_newConnectionCallback(clnt_sock);
 }
 
 

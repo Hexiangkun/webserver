@@ -20,8 +20,6 @@ public:
 
     void SetNewConnectionCallback(std::function<void(std::shared_ptr<Socket>&)>);
 
-
-
     void AcceptConnection();
 private:
     std::shared_ptr<EventLoop> m_eventLoop;
