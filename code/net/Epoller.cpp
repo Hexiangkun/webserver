@@ -71,6 +71,7 @@ Epoller::Epoller()
 {
     m_epfd = ::epoll_create(512);
     //Debug
+    std::cout << "Epoller" << m_epfd << std::endl;
 }
 
 Epoller::~Epoller()

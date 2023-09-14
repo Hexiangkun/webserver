@@ -1,10 +1,12 @@
+#include <sys/epoll.h>
 #include "Channel.h"
-#include "Epoller.h"
+#include "EventLoop.h"
+
 namespace hxk
 {
 
-Channel::Channel(std::shared_ptr<Epoller> ep, int sockfd) :m_epPtr(ep), m_sockfd(sockfd),
-            m_events(0), m_revents(0), m_inEpoll(false)
+Channel::Channel(std::shared_ptr<EventLoop>& loop, int sockfd) :m_eventLoop(loop), 
+            m_sockfd(sockfd), m_events(0), m_revents(0), m_inEpoll(false)
 {
 
 }
@@ -18,7 +20,7 @@ Channel::~Channel()
 void Channel::SetEnableReading()
 {
     m_events = EPOLLIN | EPOLLET;
-    m_epPtr->UpdateChannel(this);
+    m_eventLoop->UpdateChannel(this);
 }
 
 int Channel::GetFd()
@@ -54,6 +56,16 @@ void Channel::SetEvent(uint32_t _ev)
 void Channel::SetREvent(uint32_t _ev)
 {
     m_revents = _ev;
+}
+
+void Channel::HandleEvent()
+{
+    m_callback();
+}
+
+void Channel::SetCallbck(std::function<void()> cb)
+{   
+    m_callback = cb;
 }
 
 }
