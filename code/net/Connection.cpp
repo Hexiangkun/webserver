@@ -47,7 +47,8 @@ void Connection::HandleReadEvent(int sockfd)
         }
         else if(bytes == 0) {
             printf("EOF, client fd %d disconnected\n", sockfd);
-            close(sockfd);   //关闭socket会自动将文件描述符从epoll树上移除
+            // close(sockfd);   //关闭socket会自动将文件描述符从epoll树上移除
+            m_deleteConnCallback(m_sock);
             break;
         }
     }
