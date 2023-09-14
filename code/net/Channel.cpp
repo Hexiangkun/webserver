@@ -63,9 +63,19 @@ void Channel::HandleEvent()
     m_callback();
 }
 
+void Channel::HandleConnectionEvent()
+{
+    m_newConnCallback();
+}
+
 void Channel::SetCallbck(std::function<void()> cb)
 {   
     m_callback = cb;
+}
+
+void Channel::SetNewConnectionCallback(std::function<void()> cb)
+{
+    m_callback = cb;    //处理新的连接
 }
 
 }

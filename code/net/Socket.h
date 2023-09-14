@@ -36,6 +36,11 @@ public:
         errif(::bind(fd_, (struct sockaddr*)(&addr->GetAddr()), sizeof(addr->GetAddr())) == -1, "Socket bind error!");
     }
 
+    void Bind(std::shared_ptr<InetAddress>& addr)
+    {
+        errif(::bind(fd_, (struct sockaddr*)(&addr->GetAddr()), sizeof(addr->GetAddr())) == -1, "socket bind error!");
+    }
+
     void Listen()
     {
         errif(::listen(fd_, SOMAXCONN) == -1, "Listen error!");
@@ -48,6 +53,19 @@ public:
 
 
     int Accept(InetAddress* addr)
+    {
+        struct sockaddr_in tmp;
+        socklen_t len = sizeof(tmp);
+        int clnt_sockfd = ::accept(fd_, (struct sockaddr*)(&tmp), &len);
+
+        errif(clnt_sockfd == -1, "Socket accept error!");
+
+        addr->Init(tmp);
+
+        return clnt_sockfd;
+    }
+
+    int Accept(std::shared_ptr<InetAddress>& addr)
     {
         struct sockaddr_in tmp;
         socklen_t len = sizeof(tmp);

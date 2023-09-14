@@ -29,11 +29,15 @@ public:
     void SetEnableReading();
 
     void HandleEvent();
+    void HandleConnectionEvent();
 
     void SetCallbck(std::function<void()>);
+
+    void SetNewConnectionCallback(std::function<void()>);
 private:
     std::shared_ptr<EventLoop> m_eventLoop;
     std::function<void()> m_callback;
+    std::function<void()> m_newConnCallback;
     int m_sockfd;
     uint32_t m_events;
     uint32_t m_revents;
