@@ -192,6 +192,14 @@ void Epoller::UpdateChannel(Channel* ch)
     }
 }
 
+
+void Epoller::DeleteChannel(Channel* ch)
+{
+    int sockfd = ch->GetFd();
+    errif(::epoll_ctl(m_epfd, EPOLL_CTL_DEL, sockfd, nullptr) == -1, "epoll del error");
+    ch->SetInEpoll(false);
+}
+
 std::vector<Channel*> Epoller::poll(std::size_t maxEvents, int timeoutMs)
 {
     if(maxEvents == 0) {

@@ -6,14 +6,18 @@ namespace hxk
 {
 
 
-Connection::Connection(std::shared_ptr<EventLoop>& loop, std::shared_ptr<Socket>& sock):m_eventLoop(loop),
-        m_sock(sock), m_buffer(std::make_shared<Buffer>()),m_channel(nullptr)
+Connection::Connection(std::shared_ptr<EventLoop>& loop, std::shared_ptr<Socket>& sock)
+        :m_eventLoop(loop), m_sock(sock), m_buffer(std::make_shared<Buffer>()),
+        m_read_buffer(std::make_shared<Buffer>()), m_write_buffer(std::make_shared<Buffer>()),
+        m_channel(nullptr)
 {
-    m_channel = new Channel(loop, m_sock->GetFd());
-    m_channel->SetEnableRead_ET();
+    if(m_eventLoop != nullptr) {
+        m_channel = new Channel(loop, m_sock->GetFd());
+        m_channel->SetEnableRead_ET();
+    }
+
     std::function<void()> cb = std::bind(&Connection::HandleReadEvent, this, m_sock->GetFd());
     m_channel->SetReadCallbck(cb);
-    m_channel->SetUseThreadPool();
 }
 
 Connection::~Connection()

@@ -20,7 +20,6 @@ Acceptor::Acceptor(std::shared_ptr<EventLoop>& loop): m_eventLoop(loop),
     m_acceptChannel->SetEnableReading();    //默认使用LT模式
     // m_acceptChannel->SetUseET(true);    //默认为true，可用使用false
     // m_acceptChannel->SetEnableRead_ET();    //直接设置enable read and et mode
-    m_acceptChannel->SetUseThreadPool(false);    //默认为true，使用线程池
 }
 
 Acceptor::~Acceptor()

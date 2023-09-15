@@ -34,7 +34,6 @@ public:
 
     void SetReadCallbck(std::function<void()>);
     void SetWriteCallback(std::function<void()>);
-    void SetUseThreadPool(bool _use = true);
 
     void HandleEvent();
 private:
@@ -47,7 +46,6 @@ private:
     uint32_t m_readyevents;
 
     bool m_inEpoll;
-    bool m_useThreadPool;
 
 };
 

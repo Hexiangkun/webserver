@@ -6,7 +6,7 @@ namespace hxk
 
 Channel::Channel(std::shared_ptr<EventLoop>& loop, int sockfd) :m_eventLoop(loop), 
             m_sockfd(sockfd), m_events(0), m_readyevents(0), 
-            m_inEpoll(false), m_useThreadPool(true)
+            m_inEpoll(false)
 {
 
 }
@@ -87,30 +87,14 @@ void Channel::SetWriteCallback(std::function<void()> cb)
     m_writeCallback = cb;
 }
 
-void Channel::SetUseThreadPool(bool _use)
-{
-    m_useThreadPool = _use;
-}
-
-
 
 void Channel::HandleEvent()
 {
     if(m_readyevents & (EPOLLIN | EPOLLPRI)) {
-        if(m_useThreadPool) {
-            m_eventLoop->AddFuncToThread(m_readCallback);
-        }
-        else{
-            m_readCallback();
-        }
+        m_readCallback();
     }
     else if(m_readyevents & (EPOLLOUT)) {
-        if(m_useThreadPool) {
-            m_eventLoop->AddFuncToThread(m_writeCallback);
-        }
-        else {
-            m_writeCallback();
-        }
+        m_writeCallback();
     }
 }
 

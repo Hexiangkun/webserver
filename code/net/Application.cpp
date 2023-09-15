@@ -6,17 +6,29 @@
 #include "Acceptor.h"
 #include "EventLoop.h"
 #include "Connection.h"
+#include "code/threadpool/threadpool.h"
 
 #include <iostream>
 
 namespace hxk
 {
 
-Application::Application(std::shared_ptr<EventLoop>& loop) : m_eventLoop(loop),
-                            m_acceptor(std::make_shared<Acceptor>(loop))
+Application::Application(std::shared_ptr<EventLoop>& loop) 
+                        :m_mainReactor(loop),
+                        m_acceptor(std::make_shared<Acceptor>(loop)),
+                        m_threadpool(std::make_shared<ThreadPool>(std::thread::hardware_concurrency()))
 {
     std::function<void(std::shared_ptr<Socket>&)> cb = std::bind(&Application::HandleNewConnection, this, std::placeholders::_1);
     m_acceptor->SetNewConnectionCallback(cb);
+
+    for(int i = 0; i < std::thread::hardware_concurrency(); i++) {
+        m_subReactor.push_back(std::make_shared<EventLoop>());
+    }
+
+    for(int i = 0; i < std::thread::hardware_concurrency(); i++) {
+        std::function<void()> sub_loop = std::bind(&EventLoop::Loop, m_subReactor[i]);
+        m_threadpool->execute(sub_loop);
+    }
 }
 
 Application::~Application()
@@ -29,7 +41,9 @@ Application::~Application()
 void Application::HandleNewConnection(std::shared_ptr<Socket>& clnt_sock)
 {
     if(clnt_sock->GetFd() != -1){
-        std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_eventLoop, clnt_sock);
+        int random = clnt_sock->GetFd() % m_subReactor.size();
+
+        std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_subReactor[random], clnt_sock);
         std::function<void(int)> cb = std::bind(&Application::DeleteConnection, this, std::placeholders::_1);
         conn->SetDeleteConnCallback(cb);
         m_connections[clnt_sock->GetFd()] = conn;
