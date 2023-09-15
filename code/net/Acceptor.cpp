@@ -13,11 +13,14 @@ Acceptor::Acceptor(std::shared_ptr<EventLoop>& loop): m_eventLoop(loop),
 {
     m_sock->Bind(m_addr);
     m_sock->Listen();
-    m_sock->SetNonBlocking();
+    // m_sock->SetNonBlocking();
 
     std::function<void()> cb = std::bind(&Acceptor::AcceptConnection, this);
-    m_acceptChannel->SetCallbck(cb);
-    m_acceptChannel->SetEnableReading();
+    m_acceptChannel->SetReadCallbck(cb);
+    m_acceptChannel->SetEnableReading();    //默认使用LT模式
+    // m_acceptChannel->SetUseET(true);    //默认为true，可用使用false
+    // m_acceptChannel->SetEnableRead_ET();    //直接设置enable read and et mode
+    m_acceptChannel->SetUseThreadPool(false);    //默认为true，使用线程池
 }
 
 Acceptor::~Acceptor()
@@ -25,10 +28,6 @@ Acceptor::~Acceptor()
 
 }
 
-void Acceptor::SetNewConnectionCallback(std::function<void(std::shared_ptr<Socket>&)> cb)
-{
-    m_newConnectionCallback = cb;
-}
 
 void Acceptor::AcceptConnection()
 {
@@ -37,6 +36,11 @@ void Acceptor::AcceptConnection()
     printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->GetFd(), clnt_addr->GetIp().c_str(), clnt_addr->GetPort());
     clnt_sock->SetNonBlocking();
     m_newConnectionCallback(clnt_sock);
+}
+
+void Acceptor::SetNewConnectionCallback(std::function<void(std::shared_ptr<Socket>&)> cb)
+{
+    m_newConnectionCallback = cb;
 }
 
 

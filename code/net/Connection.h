@@ -18,8 +18,9 @@ public:
     ~Connection();
 
     void HandleReadEvent(int fd);
-
-    void SetDeleteConnCallback(std::function<void(std::shared_ptr<Socket>&)>);
+    void HandleWriteEvent(int fd);
+    
+    void SetDeleteConnCallback(std::function<void(int)>);
 
 private:
     std::shared_ptr<EventLoop> m_eventLoop;
@@ -27,7 +28,7 @@ private:
     std::shared_ptr<Buffer> m_buffer;
     Channel* m_channel;
     
-    std::function<void(std::shared_ptr<Socket>&)> m_deleteConnCallback;
+    std::function<void(int)> m_deleteConnCallback;
 };
 
 

@@ -28,18 +28,30 @@ Application::~Application()
 
 void Application::HandleNewConnection(std::shared_ptr<Socket>& clnt_sock)
 {
-    std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_eventLoop, clnt_sock);
-    std::function<void(std::shared_ptr<Socket>&)> cb = std::bind(&Application::DeleteConnection, this, std::placeholders::_1);
-    conn->SetDeleteConnCallback(cb);
-    m_connections[clnt_sock->GetFd()] = conn;
+    if(clnt_sock->GetFd() != -1){
+        std::shared_ptr<Connection> conn = std::make_shared<Connection>(m_eventLoop, clnt_sock);
+        std::function<void(int)> cb = std::bind(&Application::DeleteConnection, this, std::placeholders::_1);
+        conn->SetDeleteConnCallback(cb);
+        m_connections[clnt_sock->GetFd()] = conn;
+    }
+    else{
+        errif(true, "clnt sock error");
+    }
 }
 
-void Application::DeleteConnection(std::shared_ptr<Socket>& clnt_sock)
+void Application::DeleteConnection(int sockfd)
 {
-    std::shared_ptr<Connection> conn = m_connections[clnt_sock->GetFd()];
-    m_connections.erase(clnt_sock->GetFd());
-    conn.reset();
+    if(sockfd != -1) {
+        auto it = m_connections.find(sockfd);
+        if(it != m_connections.end()) {
+            std::shared_ptr<Connection> conn = m_connections[sockfd];
+            m_connections.erase(sockfd);
+            conn.reset();
+        }
 }
+
+}
+
 
 
 // void Application::HandleNewConnection(Socket* serv_addr)

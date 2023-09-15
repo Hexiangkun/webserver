@@ -17,7 +17,6 @@ public:
     EventLoop(/* args */);
     ~EventLoop();
 
-
     void Loop();
 
     void UpdateChannel(Channel* ch);

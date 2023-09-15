@@ -19,7 +19,6 @@ namespace EpollCtl
 
         epoll_event ev;
         bzero(&ev, sizeof(ev));
-        ev.data.fd = sockfd;
         ev.data.ptr = ptr;
         ev.events = 0;
 
@@ -41,7 +40,6 @@ namespace EpollCtl
 
         epoll_event ev;
         bzero(&ev, sizeof(ev));
-        ev.data.fd = sockfd;
         ev.data.ptr = ptr;
         ev.events = 0;
 
@@ -208,7 +206,7 @@ std::vector<Channel*> Epoller::poll(std::size_t maxEvents, int timeoutMs)
 
     for(int i = 0; i < nfds; i++) {
         Channel* ch = (Channel*)m_activeEvents[i].data.ptr;
-        ch->SetREvent(m_activeEvents[i].events);
+        ch->SetReadyEvent(m_activeEvents[i].events);
         activeChannels.emplace_back(ch);
     }
     return activeChannels;

@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <functional>
+#include <sys/epoll.h>
+#include <unistd.h>
 
 namespace hxk
 {
@@ -15,33 +17,38 @@ public:
     Channel(std::shared_ptr<EventLoop>& loop, int sockfd);
     ~Channel();
 
-    void SetREvent(uint32_t);   //设置接受到的事件
+    void SetReadyEvent(uint32_t);   //设置接受到的事件
     void SetEvent(uint32_t);
 
     int GetFd();
 
     uint32_t GetEvents();
-    uint32_t GetREvents();
+    uint32_t GetReadyEvents();
 
     bool GetInEpoll();
-    void SetInEpoll();
+    void SetInEpoll(bool _in = true);
 
     void SetEnableReading();
+    void SetUseET(bool _use = true);
+    void SetEnableRead_ET();
+
+    void SetReadCallbck(std::function<void()>);
+    void SetWriteCallback(std::function<void()>);
+    void SetUseThreadPool(bool _use = true);
 
     void HandleEvent();
-    void HandleConnectionEvent();
-
-    void SetCallbck(std::function<void()>);
-
-    void SetNewConnectionCallback(std::function<void()>);
 private:
     std::shared_ptr<EventLoop> m_eventLoop;
-    std::function<void()> m_callback;
-    std::function<void()> m_newConnCallback;
+    std::function<void()> m_readCallback;
+    std::function<void()> m_writeCallback;
     int m_sockfd;
+
     uint32_t m_events;
-    uint32_t m_revents;
+    uint32_t m_readyevents;
+
     bool m_inEpoll;
+    bool m_useThreadPool;
+
 };
 
 

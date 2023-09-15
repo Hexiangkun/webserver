@@ -17,9 +17,10 @@ class Application
 public:
     Application(std::shared_ptr<EventLoop>& loop);
     ~Application();
-    // void HandleNewConnection(Socket *serv_sock);
+
+
     void HandleNewConnection(std::shared_ptr<Socket>&);
-    void DeleteConnection(std::shared_ptr<Socket>&);
+    void DeleteConnection(int);
 private:
     std::shared_ptr<EventLoop> m_eventLoop;
     std::shared_ptr<Acceptor> m_acceptor;
