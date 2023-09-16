@@ -49,7 +49,7 @@ void Application::HandleNewConnection(std::shared_ptr<Socket>& clnt_sock)
         m_connections[clnt_sock->GetFd()] = conn;
     }
     else{
-        errif(true, "clnt sock error");
+        Errif(true, "clnt sock error");
     }
 }
 

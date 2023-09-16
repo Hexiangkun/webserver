@@ -4,6 +4,9 @@
 namespace hxk
 {
 
+namespace SocketUtil
+{
+
 const int KInvalid = -1;
 const int KTimeout = 0;
 const int KError = -1;
@@ -127,32 +130,30 @@ void SetReuseAddr(int sockfd)   //重用本地地址
     ::setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
 }
 
-bool GetLocalAddr(int sock, InetAddress& addr)
+sockaddr_in GetLocalAddr(int sock)
 {
     sockaddr_in localAddr;
     socklen_t len = sizeof(localAddr);
 
     if(0 == getsockname(sock, (struct sockaddr*)&localAddr, &len)) {
-        addr.Init(localAddr);
+        return localAddr;
     }
     else {
-        return false;
+        perror("Get local addr error!");
     }
-    return true;
 }
 
-bool GetPeerAddr(int sock, InetAddress& addr)
+sockaddr_in GetPeerAddr(int sock)
 {
     sockaddr_in remoteAddr;
     socklen_t len = sizeof(remoteAddr);
 
     if(0 == getpeername(sock, (struct sockaddr*)&remoteAddr, &len)) {
-        addr.Init(remoteAddr);
+        return remoteAddr;
     }
     else {
-        return false;
+        perror("Get remote addr error!");
     }
-    return true;
 }
 
 
@@ -182,4 +183,7 @@ bool SetMaxOpenFd(rlim_t maxfd)
     rlp.rlim_cur = maxfd;
     return setrlimit(RLIMIT_NOFILE, &rlp) == 0;
 }
+
+}
+
 }

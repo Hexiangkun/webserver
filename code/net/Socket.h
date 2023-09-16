@@ -2,8 +2,10 @@
 #define SOCKET_H
 
 #include "InetAddress.h"
-#include "code/util/util.h"
-
+#include "Common.h"
+#include <memory>
+#include <unistd.h>
+#include <fcntl.h>
 namespace hxk
 {
 
@@ -12,76 +14,23 @@ class Socket
 private:
     int fd_;
 public:
-    Socket(/* args */) : fd_(-1)
-    {
-        fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
-        errif(fd_ == -1, "Create socket error!");
-    }
+    Socket(/* args */);
+    Socket(int fd);
+    ~Socket();
 
-    Socket(int fd):fd_(fd) 
-    {
-        errif(fd_ == -1, "Create socket error!");
-    }
+    void Bind(std::shared_ptr<InetAddress>& addr);
+    void Bind(const char* ip, uint16_t port);
+    void Listen();
 
-    ~Socket()
-    {
-        if(fd_ != -1) {
-            ::close(fd_);
-            fd_ = -1;
-        }
-    }
+    void SetNonBlocking();
+    bool IsNonBlocking();
 
-    void Bind(InetAddress* addr)
-    {
-        errif(::bind(fd_, (struct sockaddr*)(&addr->GetAddr()), sizeof(addr->GetAddr())) == -1, "Socket bind error!");
-    }
+    int Accept(std::shared_ptr<InetAddress>& addr);
 
-    void Bind(std::shared_ptr<InetAddress>& addr)
-    {
-        errif(::bind(fd_, (struct sockaddr*)(&addr->GetAddr()), sizeof(addr->GetAddr())) == -1, "socket bind error!");
-    }
+    void Connect(const char* ip, uint16_t port);
+    void Connect(std::shared_ptr<InetAddress>&);
 
-    void Listen()
-    {
-        errif(::listen(fd_, SOMAXCONN) == -1, "Listen error!");
-    }
-
-    void SetNonBlocking()
-    {
-        fcntl(fd_, F_SETFL, fcntl(fd_, F_GETFL) | O_NONBLOCK);
-    }
-
-
-    int Accept(InetAddress* addr)
-    {
-        struct sockaddr_in tmp;
-        socklen_t len = sizeof(tmp);
-        int clnt_sockfd = ::accept(fd_, (struct sockaddr*)(&tmp), &len);
-
-        errif(clnt_sockfd == -1, "Socket accept error!");
-
-        addr->Init(tmp);
-
-        return clnt_sockfd;
-    }
-
-    int Accept(std::shared_ptr<InetAddress>& addr)
-    {
-        struct sockaddr_in tmp;
-        socklen_t len = sizeof(tmp);
-        int clnt_sockfd = ::accept(fd_, (struct sockaddr*)(&tmp), &len);
-
-        errif(clnt_sockfd == -1, "Socket accept error!");
-
-        addr->Init(tmp);
-
-        return clnt_sockfd;
-    }
-
-    int GetFd() 
-    {
-        return fd_;
-    }
+    int GetFd();
 };
 
 }

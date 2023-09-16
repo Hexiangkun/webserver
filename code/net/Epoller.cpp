@@ -1,7 +1,7 @@
 #include "Epoller.h"
-#include "code/util/util.h"
-
+#include "Common.h"
 #include "Channel.h"
+#include <iostream>
 namespace hxk
 {
 
@@ -112,7 +112,7 @@ void Epoller::AddFd(int sockfd, uint32_t event)
     ev.data.fd = sockfd;
     ev.events = event;
 
-    errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, sockfd, &ev) == -1, "epoll add fd event error!");
+    Errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, sockfd, &ev) == -1, "epoll add fd event error!");
 }
 
 void Epoller::ModFd(int sockfd, uint32_t event)
@@ -121,12 +121,12 @@ void Epoller::ModFd(int sockfd, uint32_t event)
     bzero(&ev, sizeof(ev));
     ev.data.fd = sockfd;
     ev.events = event;
-    errif(::epoll_ctl(m_epfd, EPOLL_CTL_MOD, sockfd, &ev) == -1, "epoll mod fd event error!");
+    Errif(::epoll_ctl(m_epfd, EPOLL_CTL_MOD, sockfd, &ev) == -1, "epoll mod fd event error!");
 }
 
 void Epoller::DelFd(int sockfd)
 {
-    errif(::epoll_ctl(m_epfd, EPOLL_CTL_DEL, sockfd, nullptr) == -1, "epoll del fd event error!");
+    Errif(::epoll_ctl(m_epfd, EPOLL_CTL_DEL, sockfd, nullptr) == -1, "epoll del fd event error!");
 }
 
 int Epoller::Poll(std::size_t maxEvents, int timeoutMs) 
@@ -184,11 +184,11 @@ void Epoller::UpdateChannel(Channel* ch)
     ev.events = ch->GetListenEvents();
     
     if(!ch->GetInEpoll()){  //不在m_epfd的红黑树中
-        errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "epoll add fd error!");
+        Errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "epoll add fd error!");
         ch->SetInEpoll();
     }
     else {
-        errif(::epoll_ctl(m_epfd, EPOLL_CTL_MOD, fd, &ev) == -1, "epoll mode fd error!");
+        Errif(::epoll_ctl(m_epfd, EPOLL_CTL_MOD, fd, &ev) == -1, "epoll mode fd error!");
     }
 }
 
@@ -196,7 +196,7 @@ void Epoller::UpdateChannel(Channel* ch)
 void Epoller::DeleteChannel(Channel* ch)
 {
     int sockfd = ch->GetFd();
-    errif(::epoll_ctl(m_epfd, EPOLL_CTL_DEL, sockfd, nullptr) == -1, "epoll del error");
+    Errif(::epoll_ctl(m_epfd, EPOLL_CTL_DEL, sockfd, nullptr) == -1, "epoll del error");
     ch->SetInEpoll(false);
 }
 
@@ -210,7 +210,7 @@ std::vector<Channel*> Epoller::poll(std::size_t maxEvents, int timeoutMs)
     }
     std::vector<Channel*> activeChannels;
     int nfds = ::epoll_wait(m_epfd, &m_activeEvents[0], maxEvents, timeoutMs);
-    errif(nfds == -1, "epoll wait error");
+    Errif(nfds == -1, "epoll wait error");
 
     for(int i = 0; i < nfds; i++) {
         Channel* ch = (Channel*)m_activeEvents[i].data.ptr;

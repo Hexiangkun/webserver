@@ -78,5 +78,4 @@ bool MakeDir(const std::string& filepath);
 std::vector<std::string> SplitString(const std::string& str, char seperator);
 
 
-void errif(bool condition, const char* msg);
 }

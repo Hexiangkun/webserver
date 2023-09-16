@@ -1,9 +1,9 @@
 server:
-	g++ /home/hxk/project/webserver/code/util/util.cpp client.cpp -o client \
+	g++ Common.cpp client.cpp Socket.cpp InetAddress.cpp -o client \
 	-I /home/hxk/project/webserver/ -I /home/hxk/project/webserver/code/net/ \
 	-I /home/hxk/project/webserver/code/threadpool/			\
 	&& \
-	g++ /home/hxk/project/webserver/code/util/util.cpp server.cpp  	\
+	g++ Common.cpp server.cpp InetAddress.cpp Socket.cpp	\
 	/home/hxk/project/webserver/code/util/Buffer.cpp	\
 	SocketUtil.cpp EventLoop.cpp Connection.cpp Application.cpp \
 	Epoller.cpp Channel.cpp Acceptor.cpp -o server  \

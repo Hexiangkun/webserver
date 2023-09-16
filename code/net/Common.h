@@ -16,6 +16,7 @@ namespace hxk
     DISALLOW_COPY(cname);               \
     DISALLOW_MOVE(cname);
 
+void Errif(bool condition, const char* msg);
 
 }
 

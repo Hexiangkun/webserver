@@ -15,11 +15,11 @@
 #include <functional>
 
 
-#include "InetAddress.h"
-
 namespace hxk
 {
-class InetAddress;
+
+namespace SocketUtil
+{
 
 extern const int KInvalid;
 extern const int KTimeout;
@@ -41,8 +41,8 @@ void SetRecvBuf(int sockfd, socklen_t size = 64 * 1024);
 
 void SetReuseAddr(int sockfd);
 
-bool GetLocalAddr(int sock, InetAddress&);
-bool GetPeerAddr(int sock, InetAddress&);
+sockaddr_in GetLocalAddr(int sock);
+sockaddr_in GetPeerAddr(int sock);
 
 std::string ConvertIp(const char* ip);
 in_addr_t GetLocalAddrInfo();
@@ -50,6 +50,8 @@ in_addr_t GetLocalAddrInfo();
 rlim_t GetMaxOpenFd();
 
 bool SetMaxOpenFd(rlim_t maxfd);
+
+}
 
 }
 

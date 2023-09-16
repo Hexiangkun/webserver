@@ -6,17 +6,21 @@ namespace hxk
 {
 
 
-Connection::Connection(std::shared_ptr<EventLoop>& loop, std::shared_ptr<Socket>& sock)
-        :m_eventLoop(loop), m_sock(sock), m_buffer(std::make_shared<Buffer>()),
-        m_read_buffer(std::make_shared<Buffer>()), m_write_buffer(std::make_shared<Buffer>()),
+Connection::Connection(std::shared_ptr<EventLoop> loop, std::shared_ptr<Socket> sock)
+        :m_eventLoop(loop), m_clnt_sock(sock),
+        m_buffer(std::make_shared<Buffer>()),
+        m_read_buffer(std::make_shared<Buffer>()),
+        m_write_buffer(std::make_shared<Buffer>()),
         m_channel(nullptr)
 {
     if(m_eventLoop != nullptr) {
-        m_channel = new Channel(loop, m_sock->GetFd());
+        m_channel = new Channel(loop, m_clnt_sock->GetFd());
         m_channel->SetEnableRead_ET();
     }
 
-    std::function<void()> cb = std::bind(&Connection::HandleReadEvent, this, m_sock->GetFd());
+    m_state = CONNSTATE::Connected;
+
+    std::function<void()> cb = std::bind(&Connection::HandleReadEvent, this, m_clnt_sock->GetFd());
     m_channel->SetReadCallbck(cb);
 }
 
@@ -33,6 +37,13 @@ void Connection::SetDeleteConnCallback(std::function<void(int)> cb)
 
 void Connection::HandleReadEvent(int sockfd)
 {
+    if(m_state != CONNSTATE::Connected) {
+        perror("Connection is not connected, can not read");
+    }
+    assert(m_state == CONNSTATE::Connected && "Connection state is disconnected!");
+    m_read_buffer->clear();
+
+    
     char buf[1024];
     while(true){    //由于使用非阻塞IO，读取客户端buffer，一次读取buf大小数据，直到全部读取完毕
         bzero(buf, sizeof(buf));
