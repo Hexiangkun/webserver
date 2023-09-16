@@ -5,7 +5,7 @@ namespace hxk
 {
 
 Channel::Channel(std::shared_ptr<EventLoop>& loop, int sockfd) :m_eventLoop(loop), 
-            m_sockfd(sockfd), m_events(0), m_readyevents(0), 
+            m_sockfd(sockfd), m_listenevents(0), m_readyevents(0), 
             m_inEpoll(false)
 {
 
@@ -24,27 +24,27 @@ void Channel::SetReadyEvent(uint32_t _ev)
     m_readyevents = _ev;
 }
 
-void Channel::SetEvent(uint32_t _ev)
+void Channel::SetListenEvent(uint32_t _ev)
 {
-    m_events = _ev;
+    m_listenevents = _ev;
 }
 
-int Channel::GetFd()
+int Channel::GetFd() const
 {
     return m_sockfd;
 }
 
-uint32_t Channel::GetEvents()
+uint32_t Channel::GetListenEvents() const
 {
-    return m_events;
+    return m_listenevents;
 }
 
-uint32_t Channel::GetReadyEvents()
+uint32_t Channel::GetReadyEvents() const
 {
     return m_readyevents;
 }
 
-bool Channel::GetInEpoll()
+bool Channel::GetInEpoll() const
 {
     return m_inEpoll;
 }
@@ -54,37 +54,37 @@ void Channel::SetInEpoll(bool _in)
     m_inEpoll = _in;
 }
 
-void Channel::SetEnableReading()
+void Channel::SetEnableRead()
 {
-    m_events |= EPOLLIN | EPOLLPRI;
+    m_listenevents |= EPOLLIN | EPOLLPRI;
     m_eventLoop->UpdateChannel(this);
 }
 
-void Channel::SetUseET(bool _use)
+void Channel::SetEnableET(bool _use)
 {
     if(_use) {
-        m_events |= EPOLLET;
+        m_listenevents |= EPOLLET;
     }
     else {
-        m_events = m_events & ~EPOLLET;
+        m_listenevents = m_listenevents & ~EPOLLET;
     }
     m_eventLoop->UpdateChannel(this);
 }
 
 void Channel::SetEnableRead_ET()
 {
-    m_events |= EPOLLIN | EPOLLPRI | EPOLLET;
+    m_listenevents |= EPOLLIN | EPOLLPRI | EPOLLET;
     m_eventLoop->UpdateChannel(this);
 }
 
-void Channel::SetReadCallbck(std::function<void()> cb)
+void Channel::SetReadCallbck(const std::function<void()>& cb)
 {   
-    m_readCallback = cb;
+    m_readCallback = std::move(cb);
 }
 
-void Channel::SetWriteCallback(std::function<void()> cb)
+void Channel::SetWriteCallback(const std::function<void()>& cb)
 {   
-    m_writeCallback = cb;
+    m_writeCallback = std::move(cb);
 }
 
 

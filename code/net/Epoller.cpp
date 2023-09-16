@@ -181,7 +181,7 @@ void Epoller::UpdateChannel(Channel* ch)
     struct epoll_event ev;
     bzero(&ev, sizeof(ev));
     ev.data.ptr = ch;
-    ev.events = ch->GetEvents();
+    ev.events = ch->GetListenEvents();
     
     if(!ch->GetInEpoll()){  //不在m_epfd的红黑树中
         errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "epoll add fd error!");

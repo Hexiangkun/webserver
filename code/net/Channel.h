@@ -17,23 +17,25 @@ public:
     Channel(std::shared_ptr<EventLoop>& loop, int sockfd);
     ~Channel();
 
-    void SetReadyEvent(uint32_t);   //设置接受到的事件
-    void SetEvent(uint32_t);
+    void SetReadyEvent(uint32_t);   //设置触发的事件
+    void SetListenEvent(uint32_t);  //设置监听的事件
 
-    int GetFd();
+    int GetFd() const;
 
-    uint32_t GetEvents();
-    uint32_t GetReadyEvents();
+    uint32_t GetListenEvents() const;
+    uint32_t GetReadyEvents() const;
 
-    bool GetInEpoll();
+    bool GetInEpoll() const;
     void SetInEpoll(bool _in = true);
 
-    void SetEnableReading();
-    void SetUseET(bool _use = true);
+    void SetEnableRead();
+    void SetEnableWrite();
+
+    void SetEnableET(bool _use = true);
     void SetEnableRead_ET();
 
-    void SetReadCallbck(std::function<void()>);
-    void SetWriteCallback(std::function<void()>);
+    void SetReadCallbck(const std::function<void()>& );
+    void SetWriteCallback(const std::function<void()>&);
 
     void HandleEvent();
 private:
@@ -42,7 +44,7 @@ private:
     std::function<void()> m_writeCallback;
     int m_sockfd;
 
-    uint32_t m_events;
+    uint32_t m_listenevents;
     uint32_t m_readyevents;
 
     bool m_inEpoll;
