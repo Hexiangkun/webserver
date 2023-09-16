@@ -17,12 +17,12 @@ public:
     EventLoop(/* args */);
     ~EventLoop();
 
-    void Loop();
+    void Loop() const;
 
-    void UpdateChannel(Channel* ch);
+    void UpdateChannel(Channel* ch) const;
+    void DeleteChannel(Channel* ch) const;
 private:
     std::shared_ptr<Epoller> m_ep;
-    bool m_quit;
 };
 
 

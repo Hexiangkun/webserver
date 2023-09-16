@@ -19,6 +19,7 @@ Connection::Connection(std::shared_ptr<EventLoop> loop, std::shared_ptr<Socket> 
 
     m_state = CONNSTATE::Connected;
 
+//todo
     std::function<void()> cb = std::bind(&Connection::HandleReadEvent, this, m_clnt_sock->GetFd());
     m_channel->SetReadCallbck(cb);
 }
@@ -28,6 +29,7 @@ Connection::~Connection()
     delete m_channel;
 }
 
+//todo
 void Connection::HandleReadEvent(int sockfd)
 {
     if(m_state != CONNSTATE::Connected) {

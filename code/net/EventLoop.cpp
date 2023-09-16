@@ -5,7 +5,7 @@
 
 namespace hxk
 {
-EventLoop::EventLoop() :m_ep(std::make_shared<Epoller>()), m_quit(false)
+EventLoop::EventLoop() :m_ep(std::make_shared<Epoller>())
 {
     
 }
@@ -15,9 +15,9 @@ EventLoop::~EventLoop()
 
 }
 
-void EventLoop::Loop()
+void EventLoop::Loop() const
 {
-    while(!m_quit) {
+    while(true) {
         std::vector<Channel*> chs = m_ep->poll(1024);
         for(auto it = chs.begin(); it != chs.end(); ++it){
             (*it)->HandleEvent();
@@ -25,9 +25,14 @@ void EventLoop::Loop()
     }
 }
 
-void EventLoop::UpdateChannel(Channel* ch)
+void EventLoop::UpdateChannel(Channel* ch) const
 {
     m_ep->UpdateChannel(ch);
+}
+
+void EventLoop::DeleteChannel(Channel* ch) const
+{
+    m_ep->DeleteChannel(ch);
 }
 
 }

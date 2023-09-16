@@ -18,12 +18,12 @@ public:
     Acceptor(std::shared_ptr<EventLoop>& );
     ~Acceptor();
 
-    void SetNewConnectionCallback(std::function<void(std::shared_ptr<Socket>&)>);
+    void SetNewConnectionCallback(const std::function<void(std::shared_ptr<Socket>&)>&);
 
-    void AcceptConnection();
+    void AcceptConnection() const;
 private:
     std::shared_ptr<EventLoop> m_eventLoop;
-    std::shared_ptr<Socket> m_sock;
+    std::shared_ptr<Socket> m_serv_sock;
     std::shared_ptr<InetAddress> m_addr;
     std::shared_ptr<Channel> m_acceptChannel;
 

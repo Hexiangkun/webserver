@@ -7,13 +7,13 @@ namespace hxk
 
 //初始化列表按照变量定义顺序进行初始化
 Acceptor::Acceptor(std::shared_ptr<EventLoop>& loop): m_eventLoop(loop),
-            m_sock(std::make_shared<Socket>()),
+            m_serv_sock(std::make_shared<Socket>()),
             m_addr(std::make_shared<InetAddress>("127.0.0.1", 8888)),
-            m_acceptChannel(std::make_shared<Channel>(m_eventLoop, m_sock->GetFd()))
+            m_acceptChannel(std::make_shared<Channel>(m_eventLoop, m_serv_sock->GetFd()))
 {
-    m_sock->Bind(m_addr);
-    m_sock->Listen();
-    // m_sock->SetNonBlocking();
+    m_serv_sock->Bind(m_addr);
+    m_serv_sock->Listen();
+    // m_serv_sock->SetNonBlocking();
 
     std::function<void()> cb = std::bind(&Acceptor::AcceptConnection, this);
     m_acceptChannel->SetReadCallbck(cb);
@@ -28,18 +28,20 @@ Acceptor::~Acceptor()
 }
 
 
-void Acceptor::AcceptConnection()
+void Acceptor::AcceptConnection() const
 {
     std::shared_ptr<InetAddress> clnt_addr = std::make_shared<InetAddress>();
-    std::shared_ptr<Socket> clnt_sock = std::make_shared<Socket>(m_sock->Accept(clnt_addr));
+    std::shared_ptr<Socket> clnt_sock = std::make_shared<Socket>(m_serv_sock->Accept(clnt_addr));
     printf("new client fd %d! IP: %s Port: %d\n", clnt_sock->GetFd(), clnt_addr->GetIp().c_str(), clnt_addr->GetPort());
     clnt_sock->SetNonBlocking();
-    m_newConnectionCallback(clnt_sock);
+    if(m_newConnectionCallback) {
+        m_newConnectionCallback(clnt_sock);
+    }
 }
 
-void Acceptor::SetNewConnectionCallback(std::function<void(std::shared_ptr<Socket>&)> cb)
+void Acceptor::SetNewConnectionCallback(const std::function<void(std::shared_ptr<Socket>&)>& cb)
 {
-    m_newConnectionCallback = cb;
+    m_newConnectionCallback = std::move(cb);
 }
 
 
