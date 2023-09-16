@@ -2,12 +2,12 @@
 #include "Epoller.h"
 #include "Channel.h"
 
-
 namespace hxk
 {
-EventLoop::EventLoop() :m_ep(std::make_shared<Epoller>())
-{
     
+EventLoop::EventLoop(): m_ep(std::make_shared<Epoller>())
+{
+
 }
 
 EventLoop::~EventLoop()
@@ -24,6 +24,7 @@ void EventLoop::Loop() const
         }
     }
 }
+
 
 void EventLoop::UpdateChannel(Channel* ch) const
 {

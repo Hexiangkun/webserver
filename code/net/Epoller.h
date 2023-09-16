@@ -92,6 +92,8 @@ public:
 
     std::vector<epoll_event> GetActiveEvents();
 
+    int GetFD();
+
     void UpdateChannel(Channel* channel);
     void DeleteChannel(Channel* channel);
     std::vector<Channel*> poll(std::size_t maxEvents, int timeoutMs = -1);

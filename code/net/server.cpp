@@ -3,9 +3,8 @@
 using namespace hxk;
 
 int main() {
-    std::shared_ptr<EventLoop> loop = std::make_shared<EventLoop>();
-    std::shared_ptr<Application> app = std::make_shared<Application>(loop);
+    std::shared_ptr<Application> app = std::make_shared<Application>();
 
-    loop->Loop();
+    app->Start();
     return 0;
 }

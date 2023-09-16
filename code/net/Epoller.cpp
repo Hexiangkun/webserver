@@ -79,6 +79,10 @@ Epoller::~Epoller()
     }
 }
 
+int Epoller::GetFD()
+{
+    return m_epfd;
+}
 
 bool Epoller::Register(int fd, int events, void* userPtr) 
 {

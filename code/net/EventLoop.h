@@ -14,7 +14,7 @@ class EventLoop //事件驱动类
 {
 
 public:
-    EventLoop(/* args */);
+    EventLoop();
     ~EventLoop();
 
     void Loop() const;
