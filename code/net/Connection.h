@@ -27,19 +27,17 @@ public:
     void HandleReadEvent(int fd);
     void HandleWriteEvent(int fd);
     
-    void SetDeleteConnCallback(std::function<void(int)>);
-    void SetOnRecvCallback(std::function<void(std::shared_ptr<Connection>)>);
+    void SetDeleteConnCallback(const std::function<void(int)>&);
+    void SetOnRecvCallback(const std::function<void(Connection*)>&);
 
     CONNSTATE GetState() const;
     void Close();
 
-    void SetSendBuffer(const char* str);
+    void SetWriteBufferContent(const char* str);
     std::shared_ptr<Buffer> GetReadBuffer() const;
     std::shared_ptr<Buffer> GetWriteBuffer() const;
     
     std::shared_ptr<Socket> GetSocket() const;
-
-    void OnConnect(std::function<void()>);
 
 private:
     void ReadNonBlocking();
@@ -55,7 +53,6 @@ private:
     std::shared_ptr<Socket> m_clnt_sock;
     std::shared_ptr<Buffer> m_read_buffer;
     std::shared_ptr<Buffer> m_write_buffer;
-    std::shared_ptr<Buffer> m_buffer;
     CONNSTATE m_state;
     Channel* m_channel;
     
