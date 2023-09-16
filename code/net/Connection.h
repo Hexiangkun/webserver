@@ -24,8 +24,10 @@ public:
     Connection(std::shared_ptr<EventLoop>, std::shared_ptr<Socket>);
     ~Connection();
 
-    void HandleReadEvent(int fd);
-    void HandleWriteEvent(int fd);
+    void HandleReadEvent();
+    void HandleWriteEvent();
+
+    void HandleSendEvent(std::string msg);
     
     void SetDeleteConnCallback(const std::function<void(int)>&);
     void SetOnRecvCallback(const std::function<void(Connection*)>&);

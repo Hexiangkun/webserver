@@ -13,8 +13,7 @@
 namespace hxk
 {
 
-Application::Application() 
-                        :m_mainReactor(std::make_shared<EventLoop>()),
+Application::Application() :m_mainReactor(std::make_shared<EventLoop>()),
                         m_acceptor(std::make_shared<Acceptor>(m_mainReactor)),
                         m_threadpool(std::make_shared<ThreadPool>(std::thread::hardware_concurrency()))
 {

@@ -20,7 +20,7 @@ Connection::Connection(std::shared_ptr<EventLoop> loop, std::shared_ptr<Socket> 
     m_state = CONNSTATE::Connected;
 
 //todo
-    std::function<void()> cb = std::bind(&Connection::HandleReadEvent, this, m_clnt_sock->GetFd());
+    std::function<void()> cb = std::bind(&Connection::HandleReadEvent, this);
     m_channel->SetReadCallbck(cb);
 }
 
@@ -30,7 +30,7 @@ Connection::~Connection()
 }
 
 //todo
-void Connection::HandleReadEvent(int sockfd)
+void Connection::HandleReadEvent()
 {
     if(m_state != CONNSTATE::Connected) {
         perror("Connection is not connected, can not read");
@@ -75,7 +75,7 @@ void Connection::HandleReadEvent(int sockfd)
     // }
 }
 
-void Connection::HandleWriteEvent(int sockfd)
+void Connection::HandleWriteEvent()
 {
     if(m_state != CONNSTATE::Connected) {
         perror("Connection is not connected, can not read");
@@ -102,6 +102,12 @@ void Connection::HandleWriteEvent(int sockfd)
     // }
 }
 
+void Connection::HandleSendEvent(std::string msg)
+{
+    m_write_buffer->pushData(msg.c_str(), msg.size());
+    HandleWriteEvent();
+}
+
 void Connection::ReadNonBlocking()
 {
     int sockfd = m_clnt_sock->GetFd();
@@ -122,8 +128,8 @@ void Connection::ReadNonBlocking()
             printf("finish reading once\n");
             printf("message from client fd %d: %s\n", sockfd, m_read_buffer->to_string().c_str());
     
-            m_write_buffer->pushData(m_read_buffer->readAddr(), m_read_buffer->readableSize());
-            WriteNonBlocking();
+            // m_write_buffer->pushData(m_read_buffer->readAddr(), m_read_buffer->readableSize());
+            // WriteNonBlocking();
             break;
         }
         else if(bytes_read == 0) {
@@ -198,7 +204,7 @@ void Connection::WriteBlocking()
 
 void Connection::Business()
 {
-    HandleReadEvent(m_clnt_sock->GetFd());
+    HandleReadEvent();
     if(m_onRecvCallback){
         m_onRecvCallback(this);
     }
