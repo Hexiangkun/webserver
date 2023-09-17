@@ -22,36 +22,13 @@ public:
 
     std::size_t formatTime(char* buf) const;
     std::string formatTime() const;
-    int getYear() const
-    {
-        updateTime();
-        return m_tm.tm_year + 1900;
-    }
-    int getMonth() const
-    {
-        updateTime();
-        return m_tm.tm_mon + 1;
-    }
-    int getDay() const
-    {
-        updateTime();
-        return m_tm.tm_mday;
-    }
-    int getHour() const
-    {
-        updateTime();
-        return m_tm.tm_hour;
-    }
-    int getMinute() const
-    {
-        updateTime();
-        return m_tm.tm_min;
-    }
-    int getSecond() const
-    {
-        updateTime();
-        return m_tm.tm_sec;
-    }
+
+    int getYear() const;
+    int getMonth() const;
+    int getDay() const;
+    int getHour() const;
+    int getMinute() const;
+    int getSecond() const;
 
     operator int64_t() const
     {

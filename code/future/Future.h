@@ -7,9 +7,9 @@
 #include <atomic>
 #include <memory>
 
-#include "scheduler.h"
-#include "try.h"
-#include "helper.h"
+#include "Scheduler.h"
+#include "Try.h"
+#include "Helper.h"
 
 namespace hxk
 {

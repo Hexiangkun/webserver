@@ -1,7 +1,7 @@
 #ifndef LOG_FORMATTER
 #define LOG_FORMATTER
 
-#include "logEvent.h"
+#include "LogEvent.h"
 #include <vector>
 #include <iostream>
 #include <map>

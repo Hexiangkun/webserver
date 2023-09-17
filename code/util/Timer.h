@@ -6,7 +6,7 @@
 #include <memory>
 #include <iostream>
 #include <functional>
-#include "noncopyable.h"
+#include "Noncopyable.h"
 
 namespace hxk
 {
@@ -25,12 +25,10 @@ inline std::ostream& operator<<(std::ostream& os, const TimerPtrId& d)
 
 namespace internal
 {
-    class TimerManager;
     class Timer
     {
-        friend class TimerManager;
     public:
-        explicit Timer(const TimePonit& tp);
+        explicit Timer(const TimePonit& tp, int _count = kForever);
         Timer(Timer&& timer);
         Timer& operator=(Timer&&);
 
@@ -39,36 +37,43 @@ namespace internal
 
         //设置定时器触发时执行的函数和参数
         template<typename F, typename... Args>
-        void setCallback(F&& f, Args&&... args);    
+        void SetCallback(F&& f, Args&&... args);    
 
+        void SetCallback(std::function<void()>);
         //定时器触发执行的函数
-        void onTimer();
+        void OnTimer();
 
         //获取定时器唯一标识
-        TimerPtrId ptrId() const;
+        TimerPtrId GetPtrId() const;
 
         //获取定时器唯一ID
-        unsigned int uniqueId() const;
+        unsigned int GetUniqueId() const;
+
+        int GetTickCount() const;   
+        void SetTickCount(int _count);  //设置触发事件的次数
+
+        void SetInterval(DurationMs interval);
 
     private:
-        void move(Timer&& timer);
+        void _Move(Timer&& timer);
     
     private:
-        TimerPtrId m_ptrId;
-        std::function<void()> m_func;
-        DurationMs m_interval;
-        int m_count;
+        TimerPtrId m_ptrId;     //事件戳
+        std::function<void()> m_func;   //定时事件
+        DurationMs m_interval;      //定时间隔
+        int m_count;        //定时事件触发次数
+
+        static thread_local unsigned int s_timerIdGen_;
     };
 
-    class TimerManager final : public noncopyable
+    class TimerManager final : public Noncopyable
     {
-        friend class Timer;
     public:
         TimerManager();
         ~TimerManager();
 
         //触发所有到期定时器
-        void update();
+        void Tick();
 
         /// @brief 在指定的时间点开始触发定时器，重复触发一定次数，每次触发间隔为指定时间，
         /// @tparam Duration 触发间隔
@@ -100,15 +105,14 @@ namespace internal
         TimerPtrId ScheduleAfter(const Duration& duration, F&& f, Args&&... args);
 
         //取消指定定时器
-        bool cancel(TimerPtrId ptrId);
+        bool Cancel(TimerPtrId ptrId);
 
         //返回最近一个要触发的定时器还有多长时间
-        DurationMs nearestTimer() const;
+        DurationMs GetNearestTimer() const;
 
     private:
         std::multimap<TimePonit, Timer> m_timers;
 
-        static unsigned int s_timerIdGen_;
     };
 
     template<int RepeatCount, typename Duration, typename F, typename... Args>
@@ -116,12 +120,11 @@ namespace internal
     {
         static_assert(RepeatCount != 0, "RepeatCount can't be zero!");
 
-        Timer timer(triggerTime);
-        timer.m_interval = std::max(DurationMs(1), std::chrono::duration_cast<DurationMs>(period));
-        timer.m_count = RepeatCount;
-        timer.setCallback(std::forward<F>(f), std::forward<Args>(args)...);
+        Timer timer(triggerTime, RepeatCount);
+        timer.SetInterval(std::max(DurationMs(1), std::chrono::duration_cast<DurationMs>(period)));
+        timer.SetCallback(std::forward<F>(f), std::forward<Args>(args)...);
 
-        TimerPtrId ptrId = timer.ptrId();
+        TimerPtrId ptrId = timer.GetPtrId();
         m_timers.insert(std::make_pair(triggerTime, std::move(timer)));
         return ptrId;
     }
@@ -147,7 +150,7 @@ namespace internal
     }
 
     template<typename F, typename... Args>
-    void Timer::setCallback(F&& f, Args&&... args)
+    void Timer::SetCallback(F&& f, Args&&... args)
     {
         m_func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
     }

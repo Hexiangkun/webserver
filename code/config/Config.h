@@ -1,8 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "code/util/lexical_cast.h"
-#include "code/util/lock.h"
+#include "code/util/Lexical_cast.h"
+#include "code/util/Lock.h"
 #include <string>
 #include <memory>
 #include <algorithm>

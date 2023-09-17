@@ -1,7 +1,7 @@
 #ifndef LOG_CONFIG_H
 #define LOG_CONFIG_H
 
-#include "logLevel.h"
+#include "LogLevel.h"
 #include <vector>
 
 namespace hxk

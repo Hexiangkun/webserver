@@ -1,8 +1,8 @@
 #ifndef LOG_LEXICALCAST_H
 #define LOG_LEXICALCAST_H
 
-#include "code/util/lexical_cast.h"
-#include "logConfig.h"
+#include "code/util/Lexical_cast.h"
+#include "LogConfig.h"
 
 namespace hxk
 {

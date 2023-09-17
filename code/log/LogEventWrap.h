@@ -1,8 +1,8 @@
 #ifndef LOG_EVENT_WRAP_H
 #define LOG_EVENT_WRAP_H
 
-#include "logger.h"
-#include "code/util/util.h"
+#include "Logger.h"
+#include "code/util/Util.h"
 
 #define MAKE_LOG_WRAPEVENT(level, message)  \
     std::make_shared<hxk::LogEvent>(__FILE__, __LINE__, hxk::GetThreadID(),hxk::GetFiberID(), ::time(nullptr), message, level)

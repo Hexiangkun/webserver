@@ -1,7 +1,7 @@
 #ifndef LOG_EVENT_H
 #define LOG_EVENT_H
 
-#include "logLevel.h"
+#include "LogLevel.h"
 #include <memory>
 
 namespace hxk

@@ -1,7 +1,7 @@
 #ifndef LOG_BUFFER_H
 #define LOG_BUFFER_H
 
-#include "code/util/noncopyable.h"
+#include "code/util/Noncopyable.h"
 #include <new>
 #include <iostream>
 #include <vector>
@@ -13,7 +13,7 @@ namespace hxk
 const int kSmallBuffer = 1000 * 1024;
 const int kLargeBuffer = 4000 * 1024;
 
-class LogBuffer : public noncopyable
+class LogBuffer : public Noncopyable
 {
 public:
     using _uptr = std::unique_ptr<LogBuffer>;

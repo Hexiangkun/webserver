@@ -1,4 +1,4 @@
-#include "timeUtil.h"
+#include "TimeUtil.h"
 
 namespace hxk
 {
@@ -88,4 +88,43 @@ std::string TimeUtil::formatTime() const
     buf[len] = '\0';
     return std::string(buf);
 }
+
+
+int TimeUtil::getYear() const
+{
+    updateTime();
+    return m_tm.tm_year + 1900;
+}
+
+int TimeUtil::getMonth() const
+{
+    updateTime();
+    return m_tm.tm_mon + 1;
+}
+
+int TimeUtil::getDay() const
+{
+    updateTime();
+    return m_tm.tm_mday;
+}
+
+int TimeUtil::getHour() const
+{
+    updateTime();
+    return m_tm.tm_hour;
+}
+
+int TimeUtil::getMinute() const
+{
+    updateTime();
+    return m_tm.tm_min;
+}
+
+int TimeUtil::getSecond() const
+{
+    updateTime();
+    return m_tm.tm_sec;
+}
+
+
 }

@@ -1,7 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include "logAppender.h"
+#include "LogAppender.h"
 #include <list>
 #include <algorithm>
 

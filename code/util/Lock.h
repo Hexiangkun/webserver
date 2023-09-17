@@ -1,7 +1,7 @@
 #ifndef LOCK_H
 #define LOCK_H
 
-#include "noncopyable.h"
+#include "Noncopyable.h"
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdint.h>     //uint32_t
@@ -12,7 +12,7 @@
 namespace hxk
 {
 
-class Semphore : public noncopyable
+class Semphore : public Noncopyable
 {
 public:
     explicit Semphore(uint32_t count = 0)

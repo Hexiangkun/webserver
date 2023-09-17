@@ -27,6 +27,7 @@ public:
     ~Buffer() = default;
 
     std::size_t pushData(const void* data, std::size_t size);
+    std::size_t pushData(const std::string& str);
     std::size_t pushDataAt(const void* data, std::size_t size, std::size_t offset = 0);
 
     void produce(std::size_t bytes);

@@ -9,12 +9,12 @@
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include "code/util/noncopyable.h"
+#include "code/util/Noncopyable.h"
 
 namespace hxk
 {
 
-class ThreadPool : public noncopyable
+class ThreadPool : public Noncopyable
 {
 private:
     bool m_stop;

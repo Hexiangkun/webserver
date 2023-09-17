@@ -52,6 +52,11 @@ std::size_t Buffer::pushData(const void* data, std::size_t size)
     return bytes;
 }
 
+std::size_t Buffer::pushData(const std::string& str)
+{
+    pushData(str.data(), str.size());
+}
+
 std::size_t Buffer::pushDataAt(const void* data, std::size_t size, std::size_t offset)
 {
     if(!data || size == 0)
