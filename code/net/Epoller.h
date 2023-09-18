@@ -15,14 +15,6 @@ namespace hxk
 namespace internal
 {
 
-enum EventType
-{
-    eET_None = 0,           //0
-    eET_Read = 0x1 << 0,    //1
-    eET_Write = 0x1 << 1,   //2
-    eET_Error = 0x1 << 2    //4
-};
-
 struct FiredEvent   //触发事件类
 {
     int events;         //事件类型
@@ -70,7 +62,7 @@ namespace EpollCtl
 
 
 class Channel;
-class Epoller : public internal::Poller
+class Epoller 
 {
 public:
     using _ptr = std::shared_ptr<Epoller>;
@@ -80,15 +72,13 @@ public:
     Epoller(const Epoller&) = delete;
     void operator=(const Epoller&) = delete;
 
-    bool Register(int fd, int events, void* userPtr) override;
-    bool Modify(int fd, int events, void* userPtr) override;
-    bool Cancel(int fd, int events) override;
+    bool Register(int fd, int events, void* userPtr);
+    bool Modify(int fd, int events, void* userPtr);
+    bool Cancel(int fd, int events) ;
 
     void AddFd(int sockfd, uint32_t event);
     void ModFd(int sockfd, uint32_t event);
     void DelFd(int sockfd);
-
-    int Poll(std::size_t maxEvents, int timeoutMs) override;
 
     std::vector<epoll_event> GetActiveEvents();
 
@@ -96,10 +86,11 @@ public:
 
     void UpdateChannel(Channel* channel);
     void DeleteChannel(Channel* channel);
-    std::vector<Channel*> poll(std::size_t maxEvents, int timeoutMs = -1);
+    std::vector<Channel*> Poll(std::size_t maxEvents, int timeoutMs = -1);
 
 private:
     std::vector<epoll_event> m_activeEvents;
+    int m_epfd;
 };
 }
 

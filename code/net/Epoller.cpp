@@ -5,8 +5,6 @@
 namespace hxk
 {
 
-
-
 namespace internal
 {
 namespace EpollCtl
@@ -22,10 +20,10 @@ namespace EpollCtl
         ev.data.ptr = ptr;
         ev.events = 0;
 
-        if(events & eET_Read) {
+        if(events & EventType::Read) {
             ev.events |= EPOLLIN;
         }
-        if(events & eET_Write) {
+        if(events & EventType::Write) {
             ev.events |= EPOLLOUT;
         }
 
@@ -43,10 +41,10 @@ namespace EpollCtl
         ev.data.ptr = ptr;
         ev.events = 0;
 
-        if(events & eET_Read) {
+        if(events & EventType::Read) {
             ev.events |= EPOLLIN;
         }  
-        if(events & eET_Write) {
+        if(events & EventType::Write) {
             ev.events |= EPOLLOUT;
         }
 
@@ -68,6 +66,7 @@ using namespace internal;
 Epoller::Epoller()
 {
     m_epfd = ::epoll_create(512);
+    Errif(m_epfd == -1, "Create epoll error!");
     //Debug
     std::cout << "Epoller" << m_epfd << std::endl;
 }
@@ -133,46 +132,6 @@ void Epoller::DelFd(int sockfd)
     Errif(::epoll_ctl(m_epfd, EPOLL_CTL_DEL, sockfd, nullptr) == -1, "epoll del fd event error!");
 }
 
-int Epoller::Poll(std::size_t maxEvents, int timeoutMs) 
-{
-    if(maxEvents == 0) {
-        return 0;
-    }
-    while(m_activeEvents.size() < maxEvents) {
-        m_activeEvents.resize(2 * m_activeEvents.size() + 1);
-    }
-
-    int nFired = TEMP_FAILURE_RETRY(::epoll_wait(m_epfd, &m_activeEvents[0], maxEvents, timeoutMs));
-
-    if(nFired == -1 && errno != EINTR && errno != EWOULDBLOCK) {
-        return -1;
-    }
-
-    auto& firedEvents = m_firedEvents;
-    if(nFired > 0) {
-        std::vector<FiredEvent>().swap(firedEvents);
-        firedEvents.resize(nFired);
-    }
-
-    for(int i = 0; i < nFired; ++i) {
-        FiredEvent& fired = firedEvents[i];
-        fired.events = 0;
-        fired.userData = m_activeEvents[i].data.ptr;
-
-        if(m_activeEvents[i].events & EPOLLIN) {
-            fired.events |= eET_Read;
-        }
-        if(m_activeEvents[i].events & EPOLLOUT) {
-            fired.events |+ eET_Write;
-        }
-
-        if(m_activeEvents[i].events & (EPOLLERR | EPOLLHUP)) {
-            fired.events |= eET_Error;
-        }
-    }
-    return nFired;
-}
-
 std::vector<epoll_event> Epoller::GetActiveEvents()
 {
     return m_activeEvents;
@@ -185,11 +144,19 @@ void Epoller::UpdateChannel(Channel* ch)
     struct epoll_event ev;
     bzero(&ev, sizeof(ev));
     ev.data.ptr = ch;
-    ev.events = ch->GetListenEvents();
-    
+    // ev.events = ch->GetListenEvents();
+    if(ch->GetListenEvents() & EventType::Read) {
+        ev.events |= EPOLLIN | EPOLLPRI;
+    }
+    if(ch->GetListenEvents() & EventType::Write) {
+        ev.events |= EPOLLOUT;
+    }
+    if(ch->GetListenEvents() & EventType::ET) {
+        ev.events |= EPOLLET;
+    }
     if(!ch->GetInEpoll()){  //不在m_epfd的红黑树中
         Errif(::epoll_ctl(m_epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "epoll add fd error!");
-        ch->SetInEpoll();
+        ch->SetInEpoll(true);
     }
     else {
         Errif(::epoll_ctl(m_epfd, EPOLL_CTL_MOD, fd, &ev) == -1, "epoll mode fd error!");
@@ -204,7 +171,7 @@ void Epoller::DeleteChannel(Channel* ch)
     ch->SetInEpoll(false);
 }
 
-std::vector<Channel*> Epoller::poll(std::size_t maxEvents, int timeoutMs)
+std::vector<Channel*> Epoller::Poll(std::size_t maxEvents, int timeoutMs)
 {
     if(maxEvents == 0) {
         return {};
@@ -218,7 +185,17 @@ std::vector<Channel*> Epoller::poll(std::size_t maxEvents, int timeoutMs)
 
     for(int i = 0; i < nfds; i++) {
         Channel* ch = (Channel*)m_activeEvents[i].data.ptr;
-        ch->SetReadyEvent(m_activeEvents[i].events);
+        uint32_t events = m_activeEvents[i].events;
+        if(events & EPOLLIN) {
+            ch->SetReadyEvent(EventType::Read);
+        }
+        if(events & EPOLLOUT) {
+            ch->SetReadyEvent(EventType::Write);
+        }
+        if(events & EPOLLET){
+            ch->SetReadyEvent(EventType::ET);
+        }
+        // ch->SetReadyEvent(m_activeEvents[i].events);
         activeChannels.emplace_back(ch);
     }
     return activeChannels;

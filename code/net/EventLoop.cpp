@@ -18,7 +18,7 @@ EventLoop::~EventLoop()
 void EventLoop::Loop() const
 {
     while(true) {
-        std::vector<Channel*> chs = m_ep->poll(1024);
+        std::vector<Channel*> chs = m_ep->Poll(1024);
         for(auto it = chs.begin(); it != chs.end(); ++it){
             (*it)->HandleEvent();
         }
