@@ -1,5 +1,5 @@
 #include <typeinfo>
-#include "helper.h"
+#include "code/future/Helper.h"
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -31,6 +31,12 @@ void f_rvalue_int(int&& a)
 struct MyStruct {
     int x;
     double y;
+};
+
+template<typename T>
+struct MY
+{
+    T value;
 };
 
 TEST(call, res) 
@@ -96,40 +102,6 @@ struct TestData {
 
     TestData(int val) : value(val) {}
 };
-
-// TEST(call, CollectAllVariadicContext)
-// {
-
-//     // 创建一个 CollectAllVariadicContext 实例
-//     CollectAllVariadicContext<int, std::string, TestData> context;
-
-//     // 定义一个 lambda 函数，用于设置 partial result
-//     auto setResult = [&](auto&& result, size_t index) {
-//         context.SetPartialResult<decltype(result), index>(std::move(result));
-//     };
-
-//     // 创建一个线程，用于设置 partial result
-//     std::thread t1(setResult, 42, 0);
-//     std::thread t2(setResult, std::string("Hello"), 1);
-//     std::thread t3(setResult, TestData(100), 2);
-
-//     // 等待线程执行完毕
-//     t1.join();
-//     t2.join();
-//     t3.join();
-
-//     // 获取结果
-//     auto future = context.pm.GetFuture();
-//     auto result = future.Get();
-
-    // 验证结果是否正确
-    // if(std::get<0>(result) == 42);
-    // assert(std::get<1>(result) == "Hello");
-    // assert(std::get<2>(result).value == 100);
-
-//     std::cout << "All tests passed!" << std::endl;
-// }
-
 
 
 int main(int argc, char *argv[])
