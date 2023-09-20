@@ -26,7 +26,7 @@ Application::Application() :m_mainReactor(std::make_shared<EventLoop>()),
 
     for(int i = 0; i < std::thread::hardware_concurrency(); i++) {
         std::function<void()> sub_loop = std::bind(&EventLoop::Loop, m_subReactor[i]);
-        m_threadpool->execute(std::move(sub_loop));
+        m_threadpool->SubmitTask(std::move(sub_loop));
     }
 }
 
