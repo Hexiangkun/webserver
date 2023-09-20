@@ -2,7 +2,8 @@ test:
 	g++ main.cpp libllhttp.a -o main -I /home/hxk/project/webserver/ \
 	&&	\
 	g++ /home/hxk/project/webserver/code/net/http/HttpParser.cpp	\
-	test_httppraser.cpp libllhttp.a -o test_httppraser \
+	libllhttp.a	\
+	test_httppraser.cpp  -o test_httppraser \
 	-I /home/hxk/project/webserver/ -lgtest	\
 	&& 	\
 	g++ /home/hxk/project/webserver/code/net/http/HttpHelper.cpp	\
