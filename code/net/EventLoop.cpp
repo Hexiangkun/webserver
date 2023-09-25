@@ -36,4 +36,14 @@ void EventLoop::DeleteChannel(Channel* ch) const
     m_ep->DeleteChannel(ch);
 }
 
+void EventLoop::ScheduleLater(std::chrono::milliseconds, std::function<void()> f)
+{
+
+}
+
+void EventLoop::Schedule(std::function<void()> f)
+{
+    
+}
+
 }

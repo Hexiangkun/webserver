@@ -7,7 +7,7 @@
 #include <atomic>
 #include <memory>
 
-#include "Scheduler.h"
+#include "code/util/Scheduler.h"
 #include "Try.h"
 #include "Helper.h"
 
@@ -592,7 +592,8 @@ inline Future<T2> MakeExceptionFuture(std::exception_ptr&& ptr)
 
 
 template<typename... FT>
-typename CollectAllVariadicContext<typename std::decay<FT>::type::InnerType...>::FutureType WhenAll(FT&&... futures)
+typename CollectAllVariadicContext<typename std::decay<FT>::type::InnerType...>::FutureType
+    WhenAll(FT&&... futures)
 {
     auto ctx = std::make_shared<CollectAllVariadicContext<typename std::decay<FT>::type::InnerType...>>();
 
@@ -602,7 +603,8 @@ typename CollectAllVariadicContext<typename std::decay<FT>::type::InnerType...>:
 }
 
 template<class InputIterator>
-Future<std::vector<typename TryWrapper<typename std::iterator_traits<InputIterator>::value_type::InnerType>::Type>> WhenAll(InputIterator first, InputIterator last)
+Future<std::vector<typename TryWrapper<typename std::iterator_traits<InputIterator>::value_type::InnerType>::Type>> 
+    WhenAll(InputIterator first, InputIterator last)
 {
     using TryT = typename TryWrapper<typename std::iterator_traits<InputIterator>::value_type::InnerType>::Type;
     if(first == last) {
@@ -623,6 +625,7 @@ Future<std::vector<typename TryWrapper<typename std::iterator_traits<InputIterat
 
     for(size_t i=0; first != last; ++first, ++i) {
         first->Then([ctx, i](TryT&& t) {
+            ctx->results[i] = std::move(t);
             if(ctx->results.size() - 1 == std::atomic_fetch_add(&ctx->collected, std::size_t(1))) {
                 ctx->pm.SetValue(std::move(ctx->results));
             }
