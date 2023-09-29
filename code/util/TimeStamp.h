@@ -7,20 +7,21 @@
 #include <string>
 #include <cstring>
 #include <ctime>
+#include <memory>
 namespace hxk
 {
 
-class TimeUtil
+class TimeStamp
 {
 public:
-    TimeUtil();
+    typedef std::shared_ptr<TimeStamp> _ptr;
+    TimeStamp();
 
-    void now();
+    TimeStamp& now();
 
     int64_t milliSeconds() const;
     int64_t microSeconds() const;
 
-    std::size_t formatTime(char* buf) const;
     std::string formatTime() const;
 
     int getYear() const;
@@ -44,11 +45,29 @@ private:
     std::chrono::system_clock::time_point m_now;
     mutable tm m_tm;
     mutable bool m_valid;
-
-    static std::once_flag m_init;
-    static const char* m_year[];
-    static char m_number[60][2];
 };
+
+
+inline bool operator<(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.microSeconds() < rhs.microSeconds();
+}
+
+inline bool operator==(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.microSeconds() == rhs.microSeconds();
+}
+
+inline bool operator>(TimeStamp lhs, TimeStamp rhs)
+{
+    return lhs.microSeconds() > rhs.microSeconds();
+}
+
+inline double timeDifference(TimeStamp high, TimeStamp low)
+{
+    int64_t diff = high.microSeconds() - low.microSeconds();
+    return static_cast<double>(diff) / (1000 * 1000);
+}
 
 }
 
