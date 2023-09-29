@@ -1,7 +1,7 @@
 
 test:
 	g++ /home/hxk/project/webserver/test/timeutil/test_timeutil.cpp	\
-	/home/hxk/project/webserver/code/util/TimeUtil.cpp -o test_timeutil \
+	/home/hxk/project/webserver/code/util/TimeStamp.cpp -o test_timeutil \
 	-I /home/hxk/project/webserver/		\
 	&&	\
 	g++ /home/hxk/project/webserver/test/timeutil/test_timer.cpp	\
