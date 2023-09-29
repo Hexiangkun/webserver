@@ -10,84 +10,122 @@
 
 namespace hxk
 {
-const int kSmallBuffer = 1000 * 1024;
-const int kLargeBuffer = 4000 * 1024;
+const int kSmallBuffer = 4000;
+const int kLargeBuffer = 4000 * 1000;
 
+template<int SIZE>
 class LogBuffer : public Noncopyable
 {
 public:
-    using _uptr = std::unique_ptr<LogBuffer>;
-    LogBuffer(const size_t size = 4000 * 1024);
+    using _uptr = std::unique_ptr<LogBuffer<SIZE>>;
+    LogBuffer();
     ~LogBuffer();
 
     bool append(const char* buf, size_t len);
     bool append(const std::string& str);
-    const std::string data() const;
-    void clear();
+
+    const std::string toString() const;
+    const char* data() const;
+    char* current();
+
     size_t length() const;
+
     size_t avail() const ;
+
+    void addLen(size_t len);
+    void clear();
+    void bzero();
 private:
-    // char* m_datas;
-    // char* m_cur;
-    std::vector<char> m_data;
+    const char* end() const;
+private:
+    // std::vector<char> m_data;
+    char m_data[SIZE];
+    char *m_cur;
 };
 
-LogBuffer::LogBuffer(const size_t size)
+template<int SIZE>
+LogBuffer<SIZE>::LogBuffer() : m_cur(m_data)
 {
-    m_data.reserve(size);
-    // try
-    // {
-    //     m_datas = new char[SIZE];
-    // }
-    // catch(const std::bad_alloc& e)
-    // {
-    //     std::cerr << "LogBuffer::LogBuffer exception"
-    //         << e.what() << std::endl;
-    // }
-    // m_cur = m_datas;
+
+}
+
+template<int SIZE>
+LogBuffer<SIZE>::~LogBuffer()
+{
     
 }
 
-LogBuffer::~LogBuffer()
-{
-    // delete [] m_datas;
-}
-
-
-bool LogBuffer::append(const char* buf, size_t len)
+template<int SIZE>
+bool LogBuffer<SIZE>::append(const char* buf, size_t len)
 {
     if(avail() > len)
     {
-        for(size_t i=0; i<len; i++){
-            m_data.emplace_back(buf[i]);
-        }
+        memcpy(m_cur, buf, len);
+        m_cur += len;
         return true;
     }
     return false;
 }
 
-bool LogBuffer::append(const std::string& str)
+template<int SIZE>
+bool LogBuffer<SIZE>::append(const std::string& str)
 {
     return append(str.c_str(), str.size());
 }
 
-const std::string LogBuffer::data() const
+template<int SIZE>
+const std::string LogBuffer<SIZE>::toString() const
 {
-    return std::string(m_data.begin(), m_data.end());
+    return std::string(m_data);
 }
 
-void LogBuffer::clear()
+template<int SIZE>
+const char* LogBuffer<SIZE>::data() const
 {
-    m_data.clear();
-}
-size_t LogBuffer::length() const
-{
-    return m_data.size();
+    return m_data;
 }
 
-size_t LogBuffer::avail() const 
+template<int SIZE>
+void LogBuffer<SIZE>::addLen(size_t len)
 {
-    return m_data.capacity() - m_data.size();
+    m_cur += len;
+}
+
+template<int SIZE>
+size_t LogBuffer<SIZE>::length() const
+{
+    return static_cast<size_t>(m_cur - m_data);
+}
+
+template<int SIZE>
+char* LogBuffer<SIZE>::current() 
+{
+    return m_cur;
+}
+
+template<int SIZE>
+size_t LogBuffer<SIZE>::avail() const 
+{
+    return static_cast<size_t>(end() - m_cur);
+}
+
+template<int SIZE>
+void LogBuffer<SIZE>::clear()
+{
+    m_cur = m_data;
+    bzero();
+}
+
+template<int SIZE>
+const char* LogBuffer<SIZE>::end() const
+{
+    return m_data + sizeof(m_data);
+}
+
+template<int SIZE>
+void LogBuffer<SIZE>::bzero()
+{
+    memset(m_data, 0, sizeof(m_data));
 }
 
 }

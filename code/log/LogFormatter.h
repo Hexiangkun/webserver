@@ -2,6 +2,7 @@
 #define LOG_FORMATTER
 
 #include "LogEvent.h"
+#include "LogBuffer.h"
 #include <vector>
 #include <iostream>
 #include <map>
@@ -15,7 +16,8 @@ class FormatItem
 {
 public:
     typedef std::shared_ptr<FormatItem> _ptr;
-    virtual void format(std::ostream& os, LogEvent::_ptr ev) = 0;
+    virtual void format(std::ostream& os, LogEvent::_ptr& ev) = 0;
+    virtual void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev) = 0;
 };
 
 /// @brief 输出字符串
@@ -23,9 +25,13 @@ class PlainFormatItem : public FormatItem
 {
 public:
     explicit PlainFormatItem(const std::string& str) : m_str(str){}
-    void format(std::ostream& out, LogEvent::_ptr ev) override
+    void format(std::ostream& out, LogEvent::_ptr& ev) override
     {
         out << m_str;
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(m_str);
     }
 private:
     std::string m_str;
@@ -35,9 +41,13 @@ private:
 class LevelFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << LogLevel::levelToString(ev->getLevel());
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(LogLevel::levelToString(ev->getLevel()));
     }
 };
 
@@ -45,9 +55,13 @@ public:
 class FileNameFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << ev->getFilename();
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(ev->getFilename());
     }
 };
 
@@ -55,9 +69,13 @@ public:
 class LineFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << ev->getLine();
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(std::to_string(ev->getLine()));
     }
 };
 
@@ -65,9 +83,13 @@ public:
 class ThreadIdFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << ev->getThreadId();
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(std::to_string(ev->getThreadId()));
     }
 };
 
@@ -75,9 +97,13 @@ public:
 class FiberIdFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << ev->getFiberId();
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(std::to_string(ev->getFiberId()));
     }
 };
 
@@ -91,14 +117,17 @@ public:
             m_time_pattern = "%Y-%m-%d %H:%M:%S";
         }
     }
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         struct tm t;
-        time_t tt = ev->getTime();
-        localtime_r(&tt,&t);
-        char time_buf[64]={0};
-        strftime(time_buf, sizeof(time_buf), m_time_pattern.c_str(),&t);
-        out << time_buf;
+        TimeStamp::_ptr tt = ev->getTime();
+        out << tt->formatTime();
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        struct tm t;
+        TimeStamp::_ptr tt = ev->getTime();
+        buf.append(tt->formatTime());
     }
 private:
     std::string m_time_pattern;
@@ -108,9 +137,13 @@ private:
 class ContentFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << ev->getContent();
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append(ev->getContent());
     }
 };
 
@@ -118,9 +151,13 @@ public:
 class NewLineFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << std::endl;
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append("\n", 2);
     }
 };
 
@@ -128,9 +165,13 @@ public:
 class PercentSignFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << "%";
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append("%", 1);
     }
 };
 
@@ -138,9 +179,13 @@ public:
 class TabFormatItem : public FormatItem
 {
 public: 
-    void format(std::ostream& out, LogEvent::_ptr ev)
+    void format(std::ostream& out, LogEvent::_ptr& ev)
     {
         out << '\t';
+    }
+    void Format(LogBuffer<kSmallBuffer>& buf, LogEvent::_ptr& ev)
+    {
+        buf.append("\t");
     }
 };
 
@@ -170,7 +215,8 @@ public:
     LogFormatter(const std::string& pattern);
     ~LogFormatter();
 
-    std::string format(LogEvent::_ptr ev);
+    std::string format(LogEvent::_ptr& ev);
+    std::string Format(LogEvent::_ptr& ev);
 
 private:
     /// @brief 解析m_format_pattern，将对应的字符的格式解析出来放到m_format_items中
@@ -191,13 +237,22 @@ LogFormatter::~LogFormatter()
     
 }
 
-std::string LogFormatter::format(LogEvent::_ptr ev)
+std::string LogFormatter::format(LogEvent::_ptr& ev)
 {
     std::stringstream ss;
     for(const auto& item : m_format_items) {
         item->format(ss, ev);
     }
     return ss.str();
+}
+
+std::string LogFormatter::Format(LogEvent::_ptr& ev)
+{
+    LogBuffer<kSmallBuffer> buf;
+    for(const auto& item : m_format_items) {
+        item->Format(buf, ev);
+    }
+    return buf.toString();
 }
 
 void LogFormatter::init()

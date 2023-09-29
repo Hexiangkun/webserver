@@ -5,7 +5,7 @@
 #include "code/util/Util.h"
 
 #define MAKE_LOG_WRAPEVENT(level, message)  \
-    std::make_shared<hxk::LogEvent>(__FILE__, __LINE__, hxk::GetThreadID(),hxk::GetFiberID(), ::time(nullptr), message, level)
+    std::make_shared<hxk::LogEvent>(__FILE__, __LINE__, hxk::GetThreadID(),hxk::GetFiberID(), nullptr, message, level)
 
 
 namespace hxk

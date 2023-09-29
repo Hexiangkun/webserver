@@ -3,10 +3,11 @@
 
 #include "code/util/Lock.h"
 #include "code/util/Util.h"
-#include "code/util/TimeUtil.h"
+#include "code/util/TimeStamp.h"
 #include "LogLevel.h"
 #include "LogFormatter.h"
 #include "LogBuffer.h"
+#include "LogFile.h"
 #include <fstream>
 #include <filesystem>
 #include <thread>
@@ -128,7 +129,7 @@ bool FileLogAppender::reopen()
     std::string full_dic = m_filename.substr(0, last_pos+1);
     MakeDir(full_dic);
     std::string full_name = m_filename.substr(last_pos+1);
-    TimeUtil now;
+    TimeStamp now;
     full_name.insert(0,now.formatTime()+"@");
 
     m_file_stream.open(full_dic + full_name, std::ios_base::out | std::ios_base::app);
@@ -146,43 +147,46 @@ void FileLogAppender::log(LogLevel::LEVEL level, LogEvent::_ptr ev)
     m_file_stream.flush();
 }
 
+
+
 class AsyncFileLogAppender : public LogAppender
 {
 public:
     using _ptr = std::shared_ptr<AsyncFileLogAppender>;
-    using LogBuffer_Uptr = LogBuffer::_uptr;
+    using LogBuffer_Uptr = LogBuffer<kLargeBuffer>::_uptr;
 
-    explicit AsyncFileLogAppender(const std::string& filename, LogLevel::LEVEL level = LogLevel::DEBUG, int flush_interval = 500);
+    explicit AsyncFileLogAppender(const std::string& filename, LogLevel::LEVEL level = LogLevel::DEBUG, int flush_interval = 400, int roll_size = 20*1024*1024);
     ~AsyncFileLogAppender();
     void log(LogLevel::LEVEL level, LogEvent::_ptr ev);
-    bool reopen();
+    bool reopen(const std::string& filename);
     void stop();
 private:
     void writeThread();
+    std::string getLogFileName();
 private:
-    std::string m_filename;
-    std::ofstream m_file_stream;
+    std::string m_basename;
+
+    // std::ofstream m_file_stream;
 
     LogBuffer_Uptr m_current_buf;
     LogBuffer_Uptr m_next_buf;
     std::vector<LogBuffer_Uptr> m_bufs;
 
     const int m_flush_interval;
+    const size_t m_roll_size;
+
     bool m_running;
     std::thread m_thread;
     std::mutex m_mutex;
     std::condition_variable m_cond;
 };
 
-AsyncFileLogAppender::AsyncFileLogAppender(const std::string& filename, LogLevel::LEVEL level, int flush_interval)
-                :m_filename(filename), LogAppender(level), m_flush_interval(flush_interval),
+AsyncFileLogAppender::AsyncFileLogAppender(const std::string& basename, LogLevel::LEVEL level, int flush_interval, int roll_size)
+                :m_basename(basename), LogAppender(level), m_flush_interval(flush_interval),m_roll_size(roll_size),
                 m_running(true), m_thread(std::bind(&AsyncFileLogAppender::writeThread, this), "AsyncLogInThread"),
-                m_current_buf(new LogBuffer), m_next_buf(new LogBuffer)
+                m_current_buf(new LogBuffer<kLargeBuffer>), m_next_buf(new LogBuffer<kLargeBuffer>)
 {
-    m_bufs.reserve(8);
-    if(!reopen()){
-        //todo
-    }
+    m_bufs.reserve(16);
 }
 AsyncFileLogAppender::~AsyncFileLogAppender()
 {
@@ -191,35 +195,12 @@ AsyncFileLogAppender::~AsyncFileLogAppender()
     }
 }
 
-bool AsyncFileLogAppender::reopen()
-{
-    std::unique_lock<std::mutex> guard(m_mutex);
-
-    if(!m_file_stream) {
-        m_file_stream.close();
-    }
-    // if(!std::filesystem::exists(m_filename)){
-    //     std::filesystem::create_directories(std::filesystem::path(m_filename).parent_path());   //创建对应的目录
-    // }
-    auto last_pos = m_filename.find_last_of("/");
-    if(last_pos == std::string::npos) {
-        throw std::logic_error("log file name is invalid!");
-    }
-    std::string full_dic = m_filename.substr(0, last_pos+1);
-    MakeDir(full_dic);
-    std::string full_name = m_filename.substr(last_pos+1);
-    TimeUtil now;
-    full_name.insert(0,now.formatTime()+"@");
-
-    m_file_stream.open(full_dic + full_name, std::ios_base::out | std::ios_base::app);
-    return !!m_file_stream;
-}
-
 void AsyncFileLogAppender::stop()
 {
     m_running = false;
     m_thread.join();
 }
+
 
 void AsyncFileLogAppender::log(LogLevel::LEVEL level, LogEvent::_ptr ev)
 {
@@ -228,30 +209,50 @@ void AsyncFileLogAppender::log(LogLevel::LEVEL level, LogEvent::_ptr ev)
     }
     std::unique_lock<std::mutex> guard(m_mutex);
     if(!m_current_buf->append(m_formatter->format(ev))) {
+
         m_bufs.emplace_back(std::move(m_current_buf));
         if(m_next_buf){
             m_current_buf = std::move(m_next_buf);
         }
         else{
-            m_current_buf.reset(new LogBuffer);
+            m_current_buf.reset(new LogBuffer<kLargeBuffer>);
         }
         if(!m_current_buf->append(m_formatter->format(ev))){
             throw std::logic_error("buffer append error");
         }
         m_cond.notify_one();
     }
+    // if(!m_current_buf->append(m_formatter->Format(ev))) {
+
+    //     m_bufs.emplace_back(std::move(m_current_buf));
+    //     if(m_next_buf){
+    //         m_current_buf = std::move(m_next_buf);
+    //     }
+    //     else{
+    //         m_current_buf.reset(new LogBuffer<kLargeBuffer>);
+    //     }
+    //     if(!m_current_buf->append(m_formatter->Format(ev))){
+    //         throw std::logic_error("buffer append error");
+    //     }
+    //     m_cond.notify_one();
+    // }
 }
 
 void AsyncFileLogAppender::writeThread()
 {
     std::vector<LogBuffer_Uptr> buffers_to_write;
-    LogBuffer_Uptr new_buf1(new LogBuffer);
-    LogBuffer_Uptr new_buf2(new LogBuffer);
+    LogBuffer_Uptr new_buf1(new LogBuffer<kLargeBuffer>);
+    LogBuffer_Uptr new_buf2(new LogBuffer<kLargeBuffer>);
+    buffers_to_write.reserve(16);
+
+    LogFile output(m_roll_size, m_basename);
+
     while (m_running)
     {
         {
             std::unique_lock<std::mutex> guard(m_mutex);
             m_cond.wait_for(guard, std::chrono::milliseconds(m_flush_interval));
+            
             m_bufs.push_back(std::move(m_current_buf));
             m_current_buf = std::move(new_buf1);
             buffers_to_write.swap(m_bufs);
@@ -268,7 +269,7 @@ void AsyncFileLogAppender::writeThread()
             buffers_to_write.erase(buffers_to_write.begin() + 2, buffers_to_write.end());
         }
         for(const auto& buf : buffers_to_write) {
-            m_file_stream << buf->data();
+            output.append(buf->data(), buf->length());
         }
         if(buffers_to_write.size() > 2){
             buffers_to_write.resize(2);
@@ -286,9 +287,9 @@ void AsyncFileLogAppender::writeThread()
             new_buf2->clear();
         }
         buffers_to_write.clear();
-        m_file_stream.flush();
+        output.flush();
     }
-    m_file_stream.flush();
+    output.flush();
 }
 
 }

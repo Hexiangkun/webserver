@@ -9,7 +9,7 @@
 #include "LogIniter.h"
 
 #define MAKE_LOG_EVENT(level, message)  \
-    std::make_shared<hxk::LogEvent>(__FILE__, __LINE__, hxk::GetThreadID(), hxk::GetFiberID(), time(nullptr), message, level)
+    std::make_shared<hxk::LogEvent>(__FILE__, __LINE__, hxk::GetThreadID(), hxk::GetFiberID(), nullptr, message, level)
 
 #define LOG_LEVEL(logger, level, message)   \
     logger->log(MAKE_LOG_EVENT(level, message));
